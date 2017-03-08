@@ -3,6 +3,13 @@
 
 #include <stdio.h>
 
+gboolean
+on_window_close(GtkWidget *window, GdkEvent *event, gpointer unused)
+{
+	gtk_main_quit();
+	return TRUE;
+}
+
 int main(int argc, char *argv[])
 {
 	GtkBuilder *builder;
@@ -16,9 +23,7 @@ int main(int argc, char *argv[])
 
 	window = GTK_WIDGET(gtk_builder_get_object(builder, "window"));
 	container = GTK_WIDGET(gtk_builder_get_object(builder, "container"));
-//	web_view = GTK_WIDGET(gtk_builder_get_object(builder, "web_view"));
 
-//	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	web_view = webkit_web_view_new();
 
 	uri = (argc > 1) ?
@@ -31,7 +36,7 @@ int main(int argc, char *argv[])
 
 	gtk_box_pack_end(GTK_BOX(container), web_view, TRUE, TRUE, 0);
 
-//	gtk_container_add(GTK_CONTAINER(window), web_view);
+	g_signal_connect(G_OBJECT(window), "delete-event", G_CALLBACK(on_window_close), NULL);
 
 	gtk_widget_show_all(window);
 

@@ -1,12 +1,13 @@
-#include "browser-app-window.h"
+#include "browser-window.h"
 #include "browser-app.h"
+#include "browser-web-view.h"
 #include <glib.h>
 #include <glib/gstdio.h>
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <webkit2/webkit2.h>
 
-struct _BrowserAppWindow
+struct _BrowserWindow
 {
 	GtkApplicationWindow parent;
 
@@ -14,17 +15,18 @@ struct _BrowserAppWindow
 	GtkWidget *entry;
 };
 
-G_DEFINE_TYPE(BrowserAppWindow, browser_app_window, GTK_TYPE_APPLICATION_WINDOW);
+G_DEFINE_TYPE(BrowserWindow, browser_window, GTK_TYPE_APPLICATION_WINDOW);
 
 static void
-browser_app_window_init(BrowserAppWindow *window)
+browser_window_init(BrowserWindow *window)
 {
 	GtkWidget *web_view;
 	char *uri = "https://www.google.ca";
 
 	gtk_widget_init_template(GTK_WIDGET(window));
 
-	web_view = webkit_web_view_new();
+//	web_view = webkit_web_view_new();
+	web_view = browser_web_view_new(BROWSER_APP(g_application_get_default()));
 
 	printf("Uri: %s\n", uri);
 
@@ -36,13 +38,11 @@ browser_app_window_init(BrowserAppWindow *window)
 }
 
 static void
-browser_app_window_class_init(BrowserAppWindowClass *class)
+browser_window_class_init(BrowserWindowClass *class)
 {
-	GtkWidgetClass *widget_class;
+	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(class);
 	GMappedFile *file;
 	GBytes *bytes;
-
-	widget_class = GTK_WIDGET_CLASS(class);
 
 	file = g_mapped_file_new("browser-window.ui", FALSE, NULL);
 	if (!file) {
@@ -54,17 +54,17 @@ browser_app_window_class_init(BrowserAppWindowClass *class)
 
 	g_mapped_file_unref(file);
 
-	gtk_widget_class_bind_template_child(widget_class, BrowserAppWindow, box);
-	gtk_widget_class_bind_template_child(widget_class, BrowserAppWindow, entry);
+	gtk_widget_class_bind_template_child(widget_class, BrowserWindow, box);
+	gtk_widget_class_bind_template_child(widget_class, BrowserWindow, entry);
 }
 
-BrowserAppWindow *
-browser_app_window_new(BrowserApp *app)
+BrowserWindow *
+browser_window_new(BrowserApp *app)
 {
-	return g_object_new(BROWSER_APP_WINDOW_TYPE, "application", app, NULL);
+	return g_object_new(BROWSER_WINDOW_TYPE, "application", app, NULL);
 }
 
 void
-browser_app_window_open(BrowserAppWindow *window, GFile *file)
+browser_window_open(BrowserWindow *window, GFile *file)
 {
 }

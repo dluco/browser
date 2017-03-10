@@ -1,5 +1,5 @@
 #include "browser-app.h"
-#include "browser-app-window.h"
+#include "browser-window.h"
 #include <gtk/gtk.h>
 
 struct _BrowserApp
@@ -18,9 +18,9 @@ browser_app_init(BrowserApp *app)
 static void
 browser_app_activate(GApplication *g_app)
 {
-	BrowserAppWindow *window;
+	BrowserWindow *window;
 
-	window = browser_app_window_new(BROWSER_APP(g_app));
+	window = browser_window_new(BROWSER_APP(g_app));
 	gtk_window_present(GTK_WINDOW(window));
 }
 
@@ -28,17 +28,17 @@ static void
 browser_app_open(GApplication *g_app, GFile **files, gint n_files, const gchar *hint)
 {
 	GList *windows;
-	BrowserAppWindow *window;
+	BrowserWindow *window;
 	int i;
 
 	windows = gtk_application_get_windows(GTK_APPLICATION(g_app));
 	if (windows)
-		window = BROWSER_APP_WINDOW(windows->data);
+		window = BROWSER_WINDOW(windows->data);
 	else
-		window = browser_app_window_new(BROWSER_APP(g_app));
+		window = browser_window_new(BROWSER_APP(g_app));
 
 	for (i = 0; i < n_files; i++)
-		browser_app_window_open(window, files[i]);
+		browser_window_open(window, files[i]);
 
 	gtk_window_present(GTK_WINDOW(window));
 }
@@ -46,8 +46,10 @@ browser_app_open(GApplication *g_app, GFile **files, gint n_files, const gchar *
 static void
 browser_app_class_init(BrowserAppClass *class)
 {
-	G_APPLICATION_CLASS(class)->activate = browser_app_activate;
-	G_APPLICATION_CLASS(class)->open = browser_app_open;
+	GApplicationClass *app_class = G_APPLICATION_CLASS(class);
+
+	app_class->activate = browser_app_activate;
+	app_class->open = browser_app_open;
 }
 
 BrowserApp *

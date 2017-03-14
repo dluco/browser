@@ -1,5 +1,6 @@
 #include "browser-window.h"
 #include "browser-app.h"
+#include "browser-notebook.h"
 #include "browser-web-view.h"
 #include <glib.h>
 #include <glib/gstdio.h>
@@ -20,21 +21,25 @@ G_DEFINE_TYPE(BrowserWindow, browser_window, GTK_TYPE_APPLICATION_WINDOW);
 static void
 browser_window_init(BrowserWindow *window)
 {
-	GtkWidget *web_view;
-	char *uri = "https://www.google.ca";
+//	GtkWidget *web_view;
+//	char *uri = "https://www.google.ca";
+	GtkWidget *notebook;
 
 	gtk_widget_init_template(GTK_WIDGET(window));
 
+	notebook = browser_notebook_new();
+
 //	web_view = webkit_web_view_new();
-	web_view = browser_web_view_new(BROWSER_APP(g_application_get_default()));
+//	web_view = browser_web_view_new();
 
-	printf("Uri: %s\n", uri);
+//	printf("Uri: %s\n", uri);
 
-	webkit_web_view_load_uri(WEBKIT_WEB_VIEW(web_view), uri);
+//	webkit_web_view_load_uri(WEBKIT_WEB_VIEW(web_view), uri);
 
-	gtk_box_pack_end(GTK_BOX(window->box), web_view, TRUE, TRUE, 0);
+//	gtk_box_pack_end(GTK_BOX(window->box), web_view, TRUE, TRUE, 0);
+	gtk_box_pack_end(GTK_BOX(window->box), notebook, TRUE, TRUE, 0);
 
-	gtk_widget_show(web_view);
+	gtk_widget_show(notebook);
 }
 
 static void

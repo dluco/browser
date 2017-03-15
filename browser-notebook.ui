@@ -10,8 +10,7 @@
     <property name="show_tabs">True</property>
     <property name="tab_pos">top</property>
     <child>
-	  <!-- Tab content goes here!  -->
-	  <object class="BrowserWebView" id="web_view">
+	  <object class="BrowserTab" id="tab">
         <property name="visible">True</property>
         <property name="can_focus">True</property>
 	  </object>

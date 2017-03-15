@@ -14,6 +14,7 @@ struct _BrowserWindow
 
 	GtkWidget *box;
 	GtkWidget *entry;
+	GtkWidget *notebook;
 };
 
 G_DEFINE_TYPE(BrowserWindow, browser_window, GTK_TYPE_APPLICATION_WINDOW);
@@ -23,11 +24,13 @@ browser_window_init(BrowserWindow *window)
 {
 //	GtkWidget *web_view;
 //	char *uri = "https://www.google.ca";
-	GtkWidget *notebook;
+//	GtkWidget *notebook;
+
+	g_type_ensure(BROWSER_TYPE_NOTEBOOK);
 
 	gtk_widget_init_template(GTK_WIDGET(window));
 
-	notebook = browser_notebook_new();
+//	notebook = browser_notebook_new();
 
 //	web_view = webkit_web_view_new();
 //	web_view = browser_web_view_new();
@@ -37,9 +40,9 @@ browser_window_init(BrowserWindow *window)
 //	webkit_web_view_load_uri(WEBKIT_WEB_VIEW(web_view), uri);
 
 //	gtk_box_pack_end(GTK_BOX(window->box), web_view, TRUE, TRUE, 0);
-	gtk_box_pack_end(GTK_BOX(window->box), notebook, TRUE, TRUE, 0);
+//	gtk_box_pack_end(GTK_BOX(window->box), notebook, TRUE, TRUE, 0);
 
-	gtk_widget_show(notebook);
+//	gtk_widget_show(notebook);
 }
 
 static void
@@ -61,6 +64,7 @@ browser_window_class_init(BrowserWindowClass *class)
 
 	gtk_widget_class_bind_template_child(widget_class, BrowserWindow, box);
 	gtk_widget_class_bind_template_child(widget_class, BrowserWindow, entry);
+	gtk_widget_class_bind_template_child(widget_class, BrowserWindow, notebook);
 }
 
 BrowserWindow *

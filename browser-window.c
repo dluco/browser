@@ -66,7 +66,7 @@ browser_window_class_init(BrowserWindowClass *class)
 BrowserWindow *
 browser_window_new(BrowserApp *app)
 {
-	return g_object_new(BROWSER_WINDOW_TYPE, "application", app, NULL);
+	return g_object_new(BROWSER_TYPE_WINDOW, "application", app, NULL);
 }
 
 void

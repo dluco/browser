@@ -3,7 +3,7 @@
 
 #include <gtk/gtk.h>
 
-#define BROWSER_APP_TYPE (browser_app_get_type())
+#define BROWSER_TYPE_APP (browser_app_get_type())
 G_DECLARE_FINAL_TYPE(BrowserApp, browser_app, BROWSER, APP, GtkApplication)
 
 BrowserApp *browser_app_new(void);

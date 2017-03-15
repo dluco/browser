@@ -55,7 +55,7 @@ browser_app_class_init(BrowserAppClass *class)
 BrowserApp *
 browser_app_new(void)
 {
-	return g_object_new(BROWSER_APP_TYPE,
+	return g_object_new(BROWSER_TYPE_APP,
 			"application-id", "com.example.browserapp",
 			"flags", G_APPLICATION_HANDLES_OPEN,
 			NULL);

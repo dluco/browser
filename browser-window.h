@@ -4,7 +4,7 @@
 #include "browser-app.h"
 #include <gtk/gtk.h>
 
-#define BROWSER_WINDOW_TYPE (browser_window_get_type())
+#define BROWSER_TYPE_WINDOW (browser_window_get_type())
 G_DECLARE_FINAL_TYPE(BrowserWindow, browser_window, BROWSER, WINDOW, GtkApplicationWindow)
 
 BrowserWindow *browser_window_new(BrowserApp *app);

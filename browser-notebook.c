@@ -18,7 +18,7 @@ browser_notebook_init(BrowserNotebook *notebook)
 {
 	char *uri = "https://www.google.ca";
 
-	g_type_ensure(BROWSER_WEB_VIEW_TYPE);
+	g_type_ensure(BROWSER_TYPE_WEB_VIEW);
 
 	gtk_widget_init_template(GTK_WIDGET(notebook));
 
@@ -48,5 +48,5 @@ browser_notebook_class_init(BrowserNotebookClass *class)
 GtkWidget *
 browser_notebook_new(void)
 {
-	return g_object_new(BROWSER_NOTEBOOK_TYPE, NULL);
+	return g_object_new(BROWSER_TYPE_NOTEBOOK, NULL);
 }

@@ -20,5 +20,5 @@ browser_web_view_class_init(BrowserWebViewClass *class)
 GtkWidget *
 browser_web_view_new(void)
 {
-	return g_object_new(BROWSER_WEB_VIEW_TYPE, NULL);
+	return g_object_new(BROWSER_TYPE_WEB_VIEW, NULL);
 }

@@ -17,10 +17,9 @@
       <placeholder/>
     </child>
     <child type="tab">
-      <object class="GtkLabel">
+      <object class="BrowserTabLabel" id="tab_label">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="label" translatable="yes">Page 1</property>
       </object>
       <packing>
         <property name="tab_fill">False</property>

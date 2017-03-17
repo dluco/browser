@@ -10,10 +10,10 @@
     <property name="show_tabs">True</property>
     <property name="tab_pos">top</property>
     <child>
-	  <object class="BrowserTab" id="tab">
+      <object class="BrowserTab" id="tab">
         <property name="visible">True</property>
         <property name="can_focus">True</property>
-	  </object>
+      </object>
       <placeholder/>
     </child>
     <child type="tab">

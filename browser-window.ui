@@ -21,10 +21,10 @@
           </packing>
         </child>
         <child>
-		  <object class="BrowserNotebook" id="notebook">
+          <object class="BrowserNotebook" id="notebook">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-		  </object>
+          </object>
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>

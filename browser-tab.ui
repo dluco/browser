@@ -6,10 +6,10 @@
     <property name="can_focus">False</property>
     <property name="orientation">vertical</property>
     <child>
-	  <object class="BrowserWebView" id="web_view">
+      <object class="BrowserWebView" id="web_view">
         <property name="visible">True</property>
         <property name="can_focus">True</property>
-	  </object>
+      </object>
       <packing>
         <property name="expand">True</property>
         <property name="fill">True</property>

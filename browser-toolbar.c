@@ -13,7 +13,7 @@ struct _BrowserToolbar
 	GtkWidget *home;
 };
 
-G_DEFINE_TYPE(BrowserToolbar, browser_toolbar, GTK_TYPE_TOOLBAR);
+G_DEFINE_TYPE(BrowserToolbar, browser_toolbar, GTK_TYPE_TOOLBAR)
 
 static void
 browser_toolbar_init(BrowserToolbar *toolbar)

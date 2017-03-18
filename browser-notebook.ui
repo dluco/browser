@@ -9,22 +9,6 @@
     <property name="show_border">False</property>
     <property name="show_tabs">True</property>
     <property name="tab_pos">top</property>
-    <child>
-      <object class="BrowserTab" id="tab">
-        <property name="visible">True</property>
-        <property name="can_focus">True</property>
-      </object>
-      <placeholder/>
-    </child>
-    <child type="tab">
-      <object class="BrowserTabLabel" id="tab_label">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-      </object>
-      <packing>
-        <property name="tab_fill">False</property>
-      </packing>
-    </child>
     <child type="action-end">
       <object class="GtkButton" id="action_end_button">
         <property name="label">gtk-add</property>

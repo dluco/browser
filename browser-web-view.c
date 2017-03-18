@@ -5,7 +5,7 @@ struct _BrowserWebView
 	WebKitWebView parent;
 };
 
-G_DEFINE_TYPE(BrowserWebView, browser_web_view, WEBKIT_TYPE_WEB_VIEW);
+G_DEFINE_TYPE(BrowserWebView, browser_web_view, WEBKIT_TYPE_WEB_VIEW)
 
 static void
 browser_web_view_init(BrowserWebView *web_view)

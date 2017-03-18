@@ -7,7 +7,7 @@ struct _BrowserApp
 	GtkApplication parent;
 };
 
-G_DEFINE_TYPE(BrowserApp, browser_app, GTK_TYPE_APPLICATION);
+G_DEFINE_TYPE(BrowserApp, browser_app, GTK_TYPE_APPLICATION)
 
 static void
 browser_app_init(BrowserApp *app)

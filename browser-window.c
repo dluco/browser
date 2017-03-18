@@ -18,7 +18,7 @@ struct _BrowserWindow
 	GtkWidget *notebook;
 };
 
-G_DEFINE_TYPE(BrowserWindow, browser_window, GTK_TYPE_APPLICATION_WINDOW);
+G_DEFINE_TYPE(BrowserWindow, browser_window, GTK_TYPE_APPLICATION_WINDOW)
 
 static void
 browser_window_init(BrowserWindow *window)

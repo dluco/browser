@@ -1,4 +1,4 @@
-#ifndef _BROWSER_NOTEBOOK_H
+#ifndef _BROWSER_NOTEBOOK_H_
 #define _BROWSER_NOTEBOOK_H_
 
 #include <gtk/gtk.h>

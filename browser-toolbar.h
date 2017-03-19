@@ -6,6 +6,7 @@
 #define BROWSER_TYPE_TOOLBAR (browser_toolbar_get_type())
 G_DECLARE_FINAL_TYPE(BrowserToolbar, browser_toolbar, BROWSER, TOOLBAR, GtkToolbar)
 
+gchar *browser_toolbar_get_entry_text(BrowserToolbar *toolbar);
 GtkWidget *browser_toolbar_new(void);
 
 #endif /* _BROWSER_TOOLBAR_H_ */

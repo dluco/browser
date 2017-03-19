@@ -70,6 +70,18 @@ browser_toolbar_init(BrowserToolbar *toolbar)
 	g_signal_connect(toolbar->entry, "activate", G_CALLBACK(on_entry_activated), toolbar);
 }
 
+gchar *
+browser_toolbar_get_entry_text(BrowserToolbar *toolbar)
+{
+	const gchar *text;
+
+	g_return_val_if_fail(BROWSER_IS_TOOLBAR(toolbar), NULL);
+
+	text = gtk_entry_get_text(GTK_ENTRY(toolbar->entry));
+
+	return g_strdup(text);
+}
+
 GtkWidget *
 browser_toolbar_new(void)
 {

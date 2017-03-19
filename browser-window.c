@@ -41,6 +41,19 @@ update_title(BrowserWindow *window)
 }
 
 static void
+on_entry_activated(BrowserToolbar *toolbar, BrowserWindow *window)
+{
+	gchar *entry_text;
+
+	entry_text = browser_toolbar_get_entry_text(toolbar);
+	if (entry_text) {
+		g_print("Entered text: %s\n", entry_text);
+	}
+
+	g_free(entry_text);
+}
+
+static void
 on_tab_title_changed(BrowserTab *tab, GParamSpec *pspec, BrowserWindow *window)
 {
 	if (tab == browser_window_get_active_tab(window)) {
@@ -96,6 +109,8 @@ browser_window_init(BrowserWindow *window)
 	g_type_ensure(BROWSER_TYPE_NOTEBOOK);
 
 	gtk_widget_init_template(GTK_WIDGET(window));
+
+	g_signal_connect(window->toolbar, "entry-activated", G_CALLBACK(on_entry_activated), window);
 
 	g_signal_connect(window->notebook, "page-added", G_CALLBACK(on_tab_added), window);
 	g_signal_connect(window->notebook, "page-removed", G_CALLBACK(on_tab_removed), window);

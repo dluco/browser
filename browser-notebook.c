@@ -29,9 +29,6 @@ browser_notebook_class_init(BrowserNotebookClass *class)
 	bytes = g_mapped_file_get_bytes(file);
 	gtk_widget_class_set_template(widget_class, bytes);
 	g_mapped_file_unref(file);
-
-//	gtk_widget_class_bind_template_child(widget_class, BrowserNotebook, tab);
-//	gtk_widget_class_bind_template_child(widget_class, BrowserNotebook, tab_label);
 }
 
 static void
@@ -39,8 +36,6 @@ browser_notebook_init(BrowserNotebook *notebook)
 {
 	GtkWidget *tab;
 	GtkWidget *tab_label;
-//	g_type_ensure(BROWSER_TYPE_TAB);
-//	g_type_ensure(BROWSER_TYPE_TAB_LABEL);
 
 	gtk_widget_init_template(GTK_WIDGET(notebook));
 
@@ -48,6 +43,21 @@ browser_notebook_init(BrowserNotebook *notebook)
 	tab_label = browser_tab_label_new(BROWSER_TAB(tab));
 
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, tab_label);
+}
+
+BrowserTab *
+browser_notebook_get_active_tab(BrowserNotebook *notebook)
+{
+	GtkWidget *tab = NULL;
+	gint curr_page;
+
+	g_return_val_if_fail(BROWSER_IS_NOTEBOOK(notebook), NULL);
+
+	curr_page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
+	if (curr_page >= 0) {
+		tab = gtk_notebook_get_nth_page(GTK_NOTEBOOK(notebook), curr_page);
+	}
+	return BROWSER_IS_TAB(tab) ? BROWSER_TAB(tab) : NULL;
 }
 
 GtkWidget *

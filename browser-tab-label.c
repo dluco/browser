@@ -63,6 +63,20 @@ browser_tab_label_get_property(GObject *object, uint prop_id, GValue *value, GPa
 }
 
 static void
+update_tooltip(BrowserTabLabel *tab_label)
+{
+	gchar *str;
+
+	g_return_if_fail(tab_label->tab != NULL);
+
+	str = browser_tab_get_title(tab_label->tab);
+	g_return_if_fail(str != NULL);
+
+	gtk_widget_set_tooltip_markup(GTK_WIDGET(tab_label), str);
+	g_free(str);
+}
+
+static void
 on_close_button_clicked(GtkWidget *widget, BrowserTabLabel *tab_label)
 {
 	g_signal_emit(tab_label, signals[CLOSE_CLICKED], 0, NULL);
@@ -81,7 +95,7 @@ on_tab_title_changed(BrowserTab *tab, GParamSpec *pspec, BrowserTabLabel *tab_la
 	gtk_label_set_text(GTK_LABEL(tab_label->label), str);
 	g_free(str);
 
-	/* TODO: Sync tooltip. */
+	update_tooltip(tab_label);
 }
 
 static void

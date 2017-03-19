@@ -7,6 +7,7 @@
 #define BROWSER_TYPE_NOTEBOOK (browser_notebook_get_type())
 G_DECLARE_FINAL_TYPE(BrowserNotebook, browser_notebook, BROWSER, NOTEBOOK, GtkNotebook)
 
+void browser_notebook_add_tab(BrowserNotebook *notebook, BrowserTab *tab, gint position, gboolean jump_to);
 BrowserTab *browser_notebook_get_active_tab(BrowserNotebook *notebook);
 GtkWidget *browser_notebook_new(void);
 

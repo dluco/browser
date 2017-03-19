@@ -10,17 +10,14 @@ struct _BrowserApp
 G_DEFINE_TYPE(BrowserApp, browser_app, GTK_TYPE_APPLICATION)
 
 static void
-browser_app_init(BrowserApp *app)
-{
-
-}
-
-static void
 browser_app_activate(GApplication *g_app)
 {
 	BrowserWindow *window;
 
 	window = browser_window_new(BROWSER_APP(g_app));
+
+	browser_window_open(window, "http://www.google.ca");
+
 	gtk_window_present(GTK_WINDOW(window));
 }
 
@@ -29,7 +26,7 @@ browser_app_open(GApplication *g_app, GFile **files, gint n_files, const gchar *
 {
 	GList *windows;
 	BrowserWindow *window;
-	int i;
+//	int i;
 
 	windows = gtk_application_get_windows(GTK_APPLICATION(g_app));
 	if (windows)
@@ -37,8 +34,8 @@ browser_app_open(GApplication *g_app, GFile **files, gint n_files, const gchar *
 	else
 		window = browser_window_new(BROWSER_APP(g_app));
 
-	for (i = 0; i < n_files; i++)
-		browser_window_open(window, files[i]);
+//	for (i = 0; i < n_files; i++)
+//		browser_window_open(window, files[i]);
 
 	gtk_window_present(GTK_WINDOW(window));
 }
@@ -50,6 +47,11 @@ browser_app_class_init(BrowserAppClass *class)
 
 	app_class->activate = browser_app_activate;
 	app_class->open = browser_app_open;
+}
+
+static void
+browser_app_init(BrowserApp *app)
+{
 }
 
 BrowserApp *

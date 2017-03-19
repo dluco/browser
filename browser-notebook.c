@@ -34,15 +34,32 @@ browser_notebook_class_init(BrowserNotebookClass *class)
 static void
 browser_notebook_init(BrowserNotebook *notebook)
 {
-	GtkWidget *tab;
+	gtk_widget_init_template(GTK_WIDGET(notebook));
+}
+
+void
+browser_notebook_add_tab(BrowserNotebook *notebook, BrowserTab *tab, gint position, gboolean jump_to)
+{
 	GtkWidget *tab_label;
 
-	gtk_widget_init_template(GTK_WIDGET(notebook));
+	g_return_if_fail(BROWSER_IS_NOTEBOOK(notebook));
+	g_return_if_fail(BROWSER_IS_TAB(tab));
 
-	tab = browser_tab_new();
 	tab_label = browser_tab_label_new(BROWSER_TAB(tab));
 
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, tab_label);
+	gtk_notebook_insert_page(GTK_NOTEBOOK(notebook), GTK_WIDGET(tab), tab_label, position);
+
+	/* Set tab properties. */
+	gtk_notebook_set_tab_reorderable(GTK_NOTEBOOK(notebook), GTK_WIDGET(tab), TRUE);
+	gtk_notebook_set_tab_detachable(GTK_NOTEBOOK(notebook), GTK_WIDGET(tab), TRUE);
+
+	/* Position may have changed after insertion due to signal handlers. */
+	position = gtk_notebook_page_num(GTK_NOTEBOOK(notebook), GTK_WIDGET(tab));
+
+	if (jump_to) {
+		gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), position);
+		gtk_widget_grab_focus(GTK_WIDGET(tab));
+	}
 }
 
 BrowserTab *

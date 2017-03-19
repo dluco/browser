@@ -9,11 +9,31 @@ struct _BrowserNotebook
 {
 	GtkNotebook parent;
 
-	BrowserTab *tab;
-	BrowserTabLabel *tab_label;
+	GtkWidget *new_tab_button;
 };
 
+enum
+{
+	NEW_TAB,
+	LAST_SIGNAL
+};
+
+static guint signals[LAST_SIGNAL];
+
 G_DEFINE_TYPE(BrowserNotebook, browser_notebook, GTK_TYPE_NOTEBOOK)
+
+static void
+on_new_tab_button_clicked(GtkButton *button, BrowserNotebook *notebook)
+{
+	g_print("Notebook: new tab clicked\n");
+
+	g_signal_emit(notebook, signals[NEW_TAB], 0, NULL);
+}
+
+static void
+browser_notebook_new_tab(BrowserNotebook *notebook)
+{
+}
 
 static void
 browser_notebook_class_init(BrowserNotebookClass *class)
@@ -22,6 +42,13 @@ browser_notebook_class_init(BrowserNotebookClass *class)
 	GMappedFile *file;
 	GBytes *bytes;
 
+	signals[NEW_TAB] = g_signal_new_class_handler("new-tab",
+			G_TYPE_FROM_CLASS(class),
+			G_SIGNAL_RUN_LAST,
+			G_CALLBACK(browser_notebook_new_tab),
+			NULL, NULL, NULL,
+			G_TYPE_NONE, 0);
+
 	file = g_mapped_file_new("browser-notebook.ui", FALSE, NULL);
 	if (!file) {
 		return;
@@ -29,12 +56,16 @@ browser_notebook_class_init(BrowserNotebookClass *class)
 	bytes = g_mapped_file_get_bytes(file);
 	gtk_widget_class_set_template(widget_class, bytes);
 	g_mapped_file_unref(file);
+
+	gtk_widget_class_bind_template_child(widget_class, BrowserNotebook, new_tab_button);
 }
 
 static void
 browser_notebook_init(BrowserNotebook *notebook)
 {
 	gtk_widget_init_template(GTK_WIDGET(notebook));
+
+	g_signal_connect(notebook->new_tab_button, "clicked", G_CALLBACK(on_new_tab_button_clicked), notebook);
 }
 
 void
@@ -48,6 +79,8 @@ browser_notebook_add_tab(BrowserNotebook *notebook, BrowserTab *tab, gint positi
 	tab_label = browser_tab_label_new(BROWSER_TAB(tab));
 
 	gtk_notebook_insert_page(GTK_NOTEBOOK(notebook), GTK_WIDGET(tab), tab_label, position);
+
+	g_print("Notebook: Setting new tab props.\n");
 
 	/* Set tab properties. */
 	gtk_notebook_set_tab_reorderable(GTK_NOTEBOOK(notebook), GTK_WIDGET(tab), TRUE);

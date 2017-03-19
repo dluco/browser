@@ -22,12 +22,9 @@ struct _BrowserWindow
 G_DEFINE_TYPE(BrowserWindow, browser_window, GTK_TYPE_APPLICATION_WINDOW)
 
 static void
-update_uri(BrowserWindow *window)
+update_uri_from_tab(BrowserWindow *window, BrowserTab *tab)
 {
-	BrowserTab *tab;
 	gchar *uri;
-
-	tab = browser_window_get_active_tab(window);
 
 	if (tab) {
 		uri = browser_tab_get_uri(tab);
@@ -43,12 +40,9 @@ update_uri(BrowserWindow *window)
 }
 
 static void
-update_title(BrowserWindow *window)
+update_title_from_tab(BrowserWindow *window, BrowserTab *tab)
 {
-	BrowserTab *tab;
 	gchar *title;
-
-	tab = browser_window_get_active_tab(window);
 
 	if (tab) {
 		title = browser_tab_get_title(tab);
@@ -59,6 +53,20 @@ update_title(BrowserWindow *window)
 	gtk_window_set_title(GTK_WINDOW(window), title);
 
 	g_free(title);
+}
+
+static void
+update_uri(BrowserWindow *window)
+{
+	BrowserTab *tab = browser_window_get_active_tab(window);
+	update_uri_from_tab(window, tab);
+}
+
+static void
+update_title(BrowserWindow *window)
+{
+	BrowserTab *tab = browser_window_get_active_tab(window);
+	update_title_from_tab(window, tab);
 }
 
 static void
@@ -119,8 +127,33 @@ on_tab_removed(GtkNotebook *notebook, GtkWidget *child, guint page_num, BrowserW
 {
 	BrowserTab *tab = BROWSER_TAB(child);
 
+	g_print("Window: tab removed\n");
+
 	g_signal_handlers_disconnect_by_func(tab, G_CALLBACK(on_tab_uri_changed), window);
 	g_signal_handlers_disconnect_by_func(tab, G_CALLBACK(on_tab_title_changed), window);
+}
+
+static void
+on_tab_changed(GtkNotebook *notebook, GtkWidget *page, guint page_num, BrowserWindow *window)
+{
+	g_print("Window: tab changed\n");
+
+	/* Set toolbar entry to tab's URI. */
+	/* TODO: There should be a per-tab buffer for user-entered entry text.
+	 * When the tab is switched, save the current user-entered text in the tab object,
+	 * and then when the new tab comes in, check if there is saved user-entered text in
+	 * the tab object, set the toolbar entry (if necessary), and clear the tab object.
+	 */
+	update_uri(window);
+	update_title(window);
+}
+
+static void
+on_new_tab_clicked(BrowserNotebook *notebook, BrowserWindow *window)
+{
+	g_print("Window: new tab clicked\n");
+
+	browser_window_create_tab_from_uri(window, "about:blank", -1, TRUE); // TODO: Set jump_to from settings.
 }
 
 static void
@@ -157,6 +190,9 @@ browser_window_init(BrowserWindow *window)
 
 	g_signal_connect(window->notebook, "page-added", G_CALLBACK(on_tab_added), window);
 	g_signal_connect(window->notebook, "page-removed", G_CALLBACK(on_tab_removed), window);
+	/* Connect after so that the notebook's current-page can be updated first. */
+	g_signal_connect_after(window->notebook, "switch-page", G_CALLBACK(on_tab_changed), window);
+	g_signal_connect(window->notebook, "new-tab", G_CALLBACK(on_new_tab_clicked), window);
 
 	update_title(window);
 }
@@ -171,13 +207,13 @@ browser_window_get_active_tab(BrowserWindow *window)
 }
 
 static BrowserTab *
-process_create_tab(BrowserWindow *window, BrowserTab *tab)
+process_create_tab(BrowserWindow *window, BrowserTab *tab, gint position, gboolean jump_to)
 {
 	g_return_val_if_fail(BROWSER_IS_WINDOW(window), NULL);
 	g_return_val_if_fail(BROWSER_IS_TAB(tab), NULL);
 
 	gtk_widget_show(GTK_WIDGET(tab));
-	browser_notebook_add_tab(BROWSER_NOTEBOOK(window->notebook), tab, -1, TRUE); // TODO: Set jump_to from settings.
+	browser_notebook_add_tab(BROWSER_NOTEBOOK(window->notebook), tab, position, jump_to);
 
 	/* Present window is necessary. */
 	if (!gtk_widget_get_visible(GTK_WIDGET(window))) {
@@ -188,7 +224,7 @@ process_create_tab(BrowserWindow *window, BrowserTab *tab)
 }
 
 BrowserTab *
-browser_window_create_tab_from_uri(BrowserWindow *window, const gchar *uri)
+browser_window_create_tab_from_uri(BrowserWindow *window, const gchar *uri, gint position, gboolean jump_to)
 {
 	GtkWidget *tab;
 
@@ -199,7 +235,7 @@ browser_window_create_tab_from_uri(BrowserWindow *window, const gchar *uri)
 
 	browser_tab_load_uri(BROWSER_TAB(tab), uri);
 
-	return process_create_tab(window, BROWSER_TAB(tab));
+	return process_create_tab(window, BROWSER_TAB(tab), position, jump_to);
 }
 
 void
@@ -210,7 +246,7 @@ browser_window_open(BrowserWindow *window, const gchar *uri)
 
 	/* TODO: Check whether the uri is already open in a tab, etc. */
 
-	browser_window_create_tab_from_uri(window, uri);
+	browser_window_create_tab_from_uri(window, uri, -1, TRUE); // TODO: Set jump_to from settings.
 }
 
 BrowserWindow *

@@ -13,12 +13,25 @@ struct _BrowserToolbar
 	GtkWidget *home;
 };
 
+enum
+{
+	ENTRY_ACTIVATED,
+	LAST_SIGNAL
+};
+
+static guint signals[LAST_SIGNAL];
+
 G_DEFINE_TYPE(BrowserToolbar, browser_toolbar, GTK_TYPE_TOOLBAR)
 
 static void
-browser_toolbar_init(BrowserToolbar *toolbar)
+on_entry_activated(GtkEntry *entry, BrowserToolbar *toolbar)
 {
-	gtk_widget_init_template(GTK_WIDGET(toolbar));
+	g_signal_emit(toolbar, signals[ENTRY_ACTIVATED], 0, NULL);
+}
+
+static void
+browser_toolbar_entry_activated(BrowserToolbar *toolbar)
+{
 }
 
 static void
@@ -27,6 +40,13 @@ browser_toolbar_class_init(BrowserToolbarClass *class)
 	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(class);
 	GMappedFile *file;
 	GBytes *bytes;
+
+	signals[ENTRY_ACTIVATED] = g_signal_new_class_handler("entry-activated",
+			G_TYPE_FROM_CLASS(class),
+			G_SIGNAL_RUN_LAST,
+			G_CALLBACK(browser_toolbar_entry_activated),
+			NULL, NULL, NULL,
+			G_TYPE_NONE, 0);
 
 	file = g_mapped_file_new("browser-toolbar.ui", FALSE, NULL);
 	if (!file) {
@@ -40,6 +60,14 @@ browser_toolbar_class_init(BrowserToolbarClass *class)
 	gtk_widget_class_bind_template_child(widget_class, BrowserToolbar, forward);
 	gtk_widget_class_bind_template_child(widget_class, BrowserToolbar, entry);
 	gtk_widget_class_bind_template_child(widget_class, BrowserToolbar, home);
+}
+
+static void
+browser_toolbar_init(BrowserToolbar *toolbar)
+{
+	gtk_widget_init_template(GTK_WIDGET(toolbar));
+
+	g_signal_connect(toolbar->entry, "activate", G_CALLBACK(on_entry_activated), toolbar);
 }
 
 GtkWidget *

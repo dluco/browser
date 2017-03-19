@@ -64,11 +64,17 @@ update_title(BrowserWindow *window)
 static void
 on_entry_activated(BrowserToolbar *toolbar, BrowserWindow *window)
 {
+	BrowserTab *tab;
 	gchar *entry_text;
 
+	tab = browser_window_get_active_tab(window);
 	entry_text = browser_toolbar_get_entry_text(toolbar);
-	if (entry_text) {
-		g_print("Entered text: %s\n", entry_text);
+
+	/* TODO: Perform some validation on the URI before loading. */
+	if (tab && entry_text) {
+		browser_tab_load_uri(tab, entry_text);
+
+		gtk_widget_grab_focus(GTK_WIDGET(tab));
 	}
 
 	g_free(entry_text);

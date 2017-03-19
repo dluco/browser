@@ -58,6 +58,13 @@ browser_tab_get_property(GObject *object, guint prop_id, GValue *value, GParamSp
 }
 
 static void
+on_tab_grab_focus(BrowserTab *tab, gpointer unused)
+{
+	/* Tab cannot focus directly, so forward the grab to the web-view. */
+	gtk_widget_grab_focus(GTK_WIDGET(tab->web_view));
+}
+
+static void
 on_web_view_uri_changed(BrowserWebView *web_view, GParamSpec *pspec, BrowserTab *tab)
 {
 	g_print("URI changed\n");
@@ -148,6 +155,7 @@ browser_tab_init(BrowserTab *tab)
 
 	gtk_widget_init_template(GTK_WIDGET(tab));
 
+	g_signal_connect(tab, "grab-focus", G_CALLBACK(on_tab_grab_focus), NULL);
 	g_signal_connect(tab->web_view, "notify::uri", G_CALLBACK(on_web_view_uri_changed), tab);
 	g_signal_connect(tab->web_view, "notify::title", G_CALLBACK(on_web_view_title_changed), tab);
 	g_signal_connect(tab->web_view, "load-changed", G_CALLBACK(on_web_view_load_changed), tab);

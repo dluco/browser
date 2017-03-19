@@ -22,6 +22,27 @@ struct _BrowserWindow
 G_DEFINE_TYPE(BrowserWindow, browser_window, GTK_TYPE_APPLICATION_WINDOW)
 
 static void
+update_uri(BrowserWindow *window)
+{
+	BrowserTab *tab;
+	gchar *uri;
+
+	tab = browser_window_get_active_tab(window);
+
+	if (tab) {
+		uri = browser_tab_get_uri(tab);
+	} else {
+		uri = g_strdup("");
+	}
+
+	if (!browser_toolbar_is_entry_modified(BROWSER_TOOLBAR(window->toolbar))) {
+		browser_toolbar_set_entry_uri(BROWSER_TOOLBAR(window->toolbar), uri);
+	}
+
+	g_free(uri);
+}
+
+static void
 update_title(BrowserWindow *window)
 {
 	BrowserTab *tab;
@@ -59,7 +80,7 @@ on_tab_uri_changed(BrowserTab *tab, BrowserWindow *window)
 	g_print("Window: tab URI changed\n");
 
 	if (tab == browser_window_get_active_tab(window)) {
-
+		update_uri(window);
 	}
 }
 

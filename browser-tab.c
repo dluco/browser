@@ -167,6 +167,18 @@ browser_tab_load_uri(BrowserTab *tab, const gchar *uri)
 }
 
 gchar *
+browser_tab_get_uri(BrowserTab *tab)
+{
+	const gchar *uri;
+
+	g_return_val_if_fail(BROWSER_IS_TAB(tab), NULL);
+
+	uri = webkit_web_view_get_uri(WEBKIT_WEB_VIEW(tab->web_view));
+
+	return g_strdup(uri);
+}
+
+gchar *
 browser_tab_get_title(BrowserTab *tab)
 {
 	const gchar *title;

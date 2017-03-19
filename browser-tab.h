@@ -7,6 +7,7 @@
 G_DECLARE_FINAL_TYPE(BrowserTab, browser_tab, BROWSER, TAB, GtkBox)
 
 void browser_tab_load_uri(BrowserTab *tab, const gchar *uri);
+gchar *browser_tab_get_uri(BrowserTab *tab);
 gchar *browser_tab_get_title(BrowserTab *tab);
 GtkWidget *browser_tab_new(void);
 

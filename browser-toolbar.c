@@ -99,6 +99,16 @@ browser_toolbar_init(BrowserToolbar *toolbar)
 	g_signal_connect(toolbar->entry, "activate", G_CALLBACK(on_entry_activated), toolbar);
 }
 
+void
+browser_toolbar_set_entry_uri(BrowserToolbar *toolbar, const gchar *uri)
+{
+	g_return_if_fail(BROWSER_IS_TOOLBAR(toolbar));
+
+	gtk_entry_set_text(GTK_ENTRY(toolbar->entry), uri);
+
+	toolbar->entry_modified = FALSE;
+}
+
 gchar *
 browser_toolbar_get_entry_text(BrowserToolbar *toolbar)
 {

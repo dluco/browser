@@ -11,6 +11,8 @@ struct _BrowserToolbar
 	GtkWidget *forward;
 	GtkWidget *entry;
 	GtkWidget *home;
+
+	gboolean entry_modified;
 };
 
 enum
@@ -24,8 +26,27 @@ static guint signals[LAST_SIGNAL];
 G_DEFINE_TYPE(BrowserToolbar, browser_toolbar, GTK_TYPE_TOOLBAR)
 
 static void
+on_entry_insert_text(GtkEntryBuffer *buffer, guint position, gchar *chars, guint n_chars, BrowserToolbar *toolbar)
+{
+	toolbar->entry_modified = TRUE;
+
+	g_print("Entry modified\n");
+}
+
+static void
+on_entry_delete_text(GtkEntryBuffer *buffer, guint position, guint n_chars, BrowserToolbar *toolbar)
+{
+	toolbar->entry_modified = TRUE;
+
+	g_print("Entry modified\n");
+}
+
+static void
 on_entry_activated(GtkEntry *entry, BrowserToolbar *toolbar)
 {
+	/* Allow the entry to be set externally. */
+	toolbar->entry_modified = FALSE;
+
 	g_signal_emit(toolbar, signals[ENTRY_ACTIVATED], 0, NULL);
 }
 
@@ -65,8 +86,16 @@ browser_toolbar_class_init(BrowserToolbarClass *class)
 static void
 browser_toolbar_init(BrowserToolbar *toolbar)
 {
+	GtkEntryBuffer *buffer;
+
+	toolbar->entry_modified = FALSE;
+
 	gtk_widget_init_template(GTK_WIDGET(toolbar));
 
+	buffer = gtk_entry_get_buffer(GTK_ENTRY(toolbar->entry));
+
+	g_signal_connect(buffer, "inserted-text", G_CALLBACK(on_entry_insert_text), toolbar);
+	g_signal_connect(buffer, "deleted-text", G_CALLBACK(on_entry_delete_text), toolbar);
 	g_signal_connect(toolbar->entry, "activate", G_CALLBACK(on_entry_activated), toolbar);
 }
 
@@ -80,6 +109,14 @@ browser_toolbar_get_entry_text(BrowserToolbar *toolbar)
 	text = gtk_entry_get_text(GTK_ENTRY(toolbar->entry));
 
 	return g_strdup(text);
+}
+
+gboolean
+browser_toolbar_is_entry_modified(BrowserToolbar *toolbar)
+{
+	g_return_val_if_fail(BROWSER_IS_TOOLBAR(toolbar), FALSE);
+
+	return toolbar->entry_modified;
 }
 
 GtkWidget *

@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <webkit2/webkit2.h>
 
+#define SAVED_USER_INPUT "saved-user-input"
+
 struct _BrowserWindow
 {
 	GtkApplicationWindow parent;
@@ -22,7 +24,7 @@ struct _BrowserWindow
 G_DEFINE_TYPE(BrowserWindow, browser_window, GTK_TYPE_APPLICATION_WINDOW)
 
 static void
-update_uri_from_tab(BrowserWindow *window, BrowserTab *tab)
+update_uri_from_tab(BrowserWindow *window, BrowserTab *tab, gboolean overwrite)
 {
 	gchar *uri;
 
@@ -32,8 +34,8 @@ update_uri_from_tab(BrowserWindow *window, BrowserTab *tab)
 		uri = g_strdup("");
 	}
 
-	if (!browser_toolbar_is_entry_modified(BROWSER_TOOLBAR(window->toolbar))) {
-		browser_toolbar_set_entry_uri(BROWSER_TOOLBAR(window->toolbar), uri);
+	if (!browser_toolbar_is_entry_modified(BROWSER_TOOLBAR(window->toolbar)) || overwrite) {
+		browser_toolbar_set_entry_uri(BROWSER_TOOLBAR(window->toolbar), uri, FALSE);
 	}
 
 	g_free(uri);
@@ -56,10 +58,10 @@ update_title_from_tab(BrowserWindow *window, BrowserTab *tab)
 }
 
 static void
-update_uri(BrowserWindow *window)
+update_uri(BrowserWindow *window, gboolean overwrite)
 {
 	BrowserTab *tab = browser_window_get_active_tab(window);
-	update_uri_from_tab(window, tab);
+	update_uri_from_tab(window, tab, overwrite);
 }
 
 static void
@@ -94,7 +96,7 @@ on_tab_uri_changed(BrowserTab *tab, BrowserWindow *window)
 	g_print("Window: tab URI changed\n");
 
 	if (tab == browser_window_get_active_tab(window)) {
-		update_uri(window);
+		update_uri(window, FALSE);
 	}
 }
 
@@ -136,18 +138,36 @@ on_tab_removed(GtkNotebook *notebook, GtkWidget *child, guint page_num, BrowserW
 static void
 on_tab_changed(GtkNotebook *notebook, GtkWidget *page, guint page_num, BrowserWindow *window)
 {
-	BrowserTab *tab = BROWSER_TAB(page);
+	BrowserTab *incoming = BROWSER_TAB(page);
+	BrowserTab *outgoing;
+	gchar *user_input = NULL;
 
 	g_print("Window: tab changed\n");
 
-	/* Set toolbar entry to tab's URI. */
-	/* TODO: There should be a per-tab buffer for user-entered entry text.
-	 * When the tab is switched, save the current user-entered text in the tab object,
-	 * and then when the new tab comes in, check if there is saved user-entered text in
-	 * the tab object, set the toolbar entry (if necessary), and clear the tab object.
-	 */
-	update_uri_from_tab(window, tab);
-	update_title_from_tab(window, tab);
+	outgoing = browser_window_get_active_tab(window);
+
+	/* Save user inputed text in the toolbar entry. */
+	if (outgoing && browser_toolbar_is_entry_modified(BROWSER_TOOLBAR(window->toolbar))) {
+		g_print("Window: saving user input in outgoing tab\n");
+
+		user_input = browser_toolbar_get_entry_text(BROWSER_TOOLBAR(window->toolbar));
+		g_object_set_data(G_OBJECT(outgoing), SAVED_USER_INPUT, user_input);
+	}
+
+	/* Restore saved user inputed text in the toolbar entry. */
+	user_input = g_object_get_data(G_OBJECT(incoming), SAVED_USER_INPUT);
+	if (user_input) {
+		g_print("Window: restoring user input from incoming tab\n");
+
+		browser_toolbar_set_entry_uri(BROWSER_TOOLBAR(window->toolbar), user_input, TRUE);
+		/* Clear the saved text in the object. */
+		g_object_set_data(G_OBJECT(incoming), SAVED_USER_INPUT, NULL);
+		g_free(user_input);
+	} else {
+		update_uri_from_tab(window, incoming, TRUE);
+	}
+
+	update_title_from_tab(window, incoming);
 }
 
 static void

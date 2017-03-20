@@ -100,13 +100,13 @@ browser_toolbar_init(BrowserToolbar *toolbar)
 }
 
 void
-browser_toolbar_set_entry_uri(BrowserToolbar *toolbar, const gchar *uri)
+browser_toolbar_set_entry_uri(BrowserToolbar *toolbar, const gchar *uri, gboolean user)
 {
 	g_return_if_fail(BROWSER_IS_TOOLBAR(toolbar));
 
 	gtk_entry_set_text(GTK_ENTRY(toolbar->entry), uri);
 
-	toolbar->entry_modified = FALSE;
+	toolbar->entry_modified = user;
 }
 
 gchar *

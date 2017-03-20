@@ -136,6 +136,8 @@ on_tab_removed(GtkNotebook *notebook, GtkWidget *child, guint page_num, BrowserW
 static void
 on_tab_changed(GtkNotebook *notebook, GtkWidget *page, guint page_num, BrowserWindow *window)
 {
+	BrowserTab *tab = BROWSER_TAB(page);
+
 	g_print("Window: tab changed\n");
 
 	/* Set toolbar entry to tab's URI. */
@@ -144,8 +146,8 @@ on_tab_changed(GtkNotebook *notebook, GtkWidget *page, guint page_num, BrowserWi
 	 * and then when the new tab comes in, check if there is saved user-entered text in
 	 * the tab object, set the toolbar entry (if necessary), and clear the tab object.
 	 */
-	update_uri(window);
-	update_title(window);
+	update_uri_from_tab(window, tab);
+	update_title_from_tab(window, tab);
 }
 
 static void
@@ -190,8 +192,7 @@ browser_window_init(BrowserWindow *window)
 
 	g_signal_connect(window->notebook, "page-added", G_CALLBACK(on_tab_added), window);
 	g_signal_connect(window->notebook, "page-removed", G_CALLBACK(on_tab_removed), window);
-	/* Connect after so that the notebook's current-page can be updated first. */
-	g_signal_connect_after(window->notebook, "switch-page", G_CALLBACK(on_tab_changed), window);
+	g_signal_connect(window->notebook, "switch-page", G_CALLBACK(on_tab_changed), window);
 	g_signal_connect(window->notebook, "new-tab", G_CALLBACK(on_new_tab_clicked), window);
 
 	update_title(window);

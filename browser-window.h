@@ -12,5 +12,6 @@ BrowserTab *browser_window_get_active_tab(BrowserWindow *window);
 BrowserWindow *browser_window_new(BrowserApp *app);
 BrowserTab *browser_window_create_tab_from_uri(BrowserWindow *window, const gchar *uri, gint position, gboolean jump_to);
 void browser_window_open(BrowserWindow *window, const gchar *uri);
+void browser_window_close_tab(BrowserWindow *window, BrowserTab *tab);
 
 #endif /* _BROWSER_APP_WINDOW_H_ */

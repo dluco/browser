@@ -128,11 +128,27 @@ static void
 on_tab_removed(GtkNotebook *notebook, GtkWidget *child, guint page_num, BrowserWindow *window)
 {
 	BrowserTab *tab = BROWSER_TAB(child);
+	char *user_input;
 
 	g_print("Window: tab removed\n");
 
 	g_signal_handlers_disconnect_by_func(tab, G_CALLBACK(on_tab_uri_changed), window);
 	g_signal_handlers_disconnect_by_func(tab, G_CALLBACK(on_tab_title_changed), window);
+
+	/* TODO: Save the user inputed text in the toolbar entry? This is only
+	 * applicable if tabs will be restorable in the future.
+	 */
+
+	/* TODO: Don't clear the SAVED_USER_INPUT data in the removed tab,
+	 * since we might add an undo-close-tab feature, in which case the
+	 * tab and its state needs to be kept alive.
+	 */
+	user_input = g_object_get_data(G_OBJECT(child), SAVED_USER_INPUT);
+	if (user_input) {
+		g_print("Window: clearing saved user input from removed tab\n");
+		g_object_set_data(G_OBJECT(child), SAVED_USER_INPUT, NULL);
+		g_free(user_input);
+	}
 }
 
 static void
@@ -179,6 +195,14 @@ on_new_tab_clicked(BrowserNotebook *notebook, BrowserWindow *window)
 }
 
 static void
+on_close_tab_clicked(BrowserNotebook *notebook, BrowserTab *tab, BrowserWindow *window)
+{
+	g_print("Window: close tab clicked\n");
+
+	browser_window_close_tab(window, tab);
+}
+
+static void
 browser_window_class_init(BrowserWindowClass *class)
 {
 	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(class);
@@ -214,6 +238,7 @@ browser_window_init(BrowserWindow *window)
 	g_signal_connect(window->notebook, "page-removed", G_CALLBACK(on_tab_removed), window);
 	g_signal_connect(window->notebook, "switch-page", G_CALLBACK(on_tab_changed), window);
 	g_signal_connect(window->notebook, "new-tab", G_CALLBACK(on_new_tab_clicked), window);
+	g_signal_connect(window->notebook, "close-tab", G_CALLBACK(on_close_tab_clicked), window);
 
 	update_title(window);
 }
@@ -268,6 +293,22 @@ browser_window_open(BrowserWindow *window, const gchar *uri)
 	/* TODO: Check whether the uri is already open in a tab, etc. */
 
 	browser_window_create_tab_from_uri(window, uri, -1, TRUE); // TODO: Set jump_to from settings.
+}
+
+void
+browser_window_close_tab(BrowserWindow *window, BrowserTab *tab)
+{
+	gint page_num;
+
+	g_return_if_fail(BROWSER_IS_WINDOW(window));
+	g_return_if_fail(BROWSER_IS_TAB(tab));
+
+	/* TODO: Check tab state before closing. */
+
+	page_num = gtk_notebook_page_num(GTK_NOTEBOOK(window->notebook), GTK_WIDGET(tab));
+	if (page_num > -1) {
+		gtk_notebook_remove_page(GTK_NOTEBOOK(window->notebook), page_num);
+	}
 }
 
 BrowserWindow *

@@ -72,6 +72,36 @@ update_title(BrowserWindow *window)
 }
 
 static void
+on_back_clicked(BrowserToolbar *toolbar, BrowserWindow *window)
+{
+	BrowserTab *tab;
+	BrowserWebView *web_view;
+
+	g_print("Window: back clicked\n");
+
+	tab = browser_window_get_active_tab(window);
+	if (tab) {
+		web_view = browser_tab_get_web_view(tab);
+		webkit_web_view_go_back(WEBKIT_WEB_VIEW(web_view));
+	}
+}
+
+static void
+on_forward_clicked(BrowserToolbar *toolbar, BrowserWindow *window)
+{
+	BrowserTab *tab;
+	BrowserWebView *web_view;
+
+	g_print("Window: forward clicked\n");
+
+	tab = browser_window_get_active_tab(window);
+	if (tab) {
+		web_view = browser_tab_get_web_view(tab);
+		webkit_web_view_go_forward(WEBKIT_WEB_VIEW(web_view));
+	}
+}
+
+static void
 on_entry_activated(BrowserToolbar *toolbar, BrowserWindow *window)
 {
 	BrowserTab *tab;
@@ -250,6 +280,8 @@ browser_window_init(BrowserWindow *window)
 
 	gtk_widget_init_template(GTK_WIDGET(window));
 
+	g_signal_connect(window->toolbar, "back-clicked", G_CALLBACK(on_back_clicked), window);
+	g_signal_connect(window->toolbar, "forward-clicked", G_CALLBACK(on_forward_clicked), window);
 	g_signal_connect(window->toolbar, "entry-activated", G_CALLBACK(on_entry_activated), window);
 
 	g_signal_connect(window->notebook, "page-added", G_CALLBACK(on_tab_added), window);

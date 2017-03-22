@@ -6,7 +6,7 @@
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <child>
-      <object class="GtkToolButton" id="back">
+      <object class="GtkToolButton" id="back_button">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="label" translatable="yes">Back</property>
@@ -19,7 +19,7 @@
       </packing>
     </child>
     <child>
-      <object class="GtkToolButton" id="forward">
+      <object class="GtkToolButton" id="forward_button">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="label" translatable="yes">Forward</property>
@@ -49,7 +49,7 @@
       </packing>
     </child>
     <child>
-      <object class="GtkToolButton" id="home">
+      <object class="GtkToolButton" id="home_button">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="label" translatable="yes">Home</property>

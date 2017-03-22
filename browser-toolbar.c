@@ -100,6 +100,15 @@ browser_toolbar_init(BrowserToolbar *toolbar)
 }
 
 void
+browser_toolbar_update_buttons(BrowserToolbar *toolbar, gboolean can_go_back, gboolean can_go_forward)
+{
+	g_return_if_fail(BROWSER_IS_TOOLBAR(toolbar));
+
+	gtk_widget_set_sensitive(toolbar->back, can_go_back);
+	gtk_widget_set_sensitive(toolbar->forward, can_go_forward);
+}
+
+void
 browser_toolbar_set_entry_uri(BrowserToolbar *toolbar, const gchar *uri, gboolean user)
 {
 	g_return_if_fail(BROWSER_IS_TOOLBAR(toolbar));

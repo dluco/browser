@@ -24,6 +24,7 @@ enum
 {
 	URI_CHANGED,
 	TITLE_CHANGED,
+	BACK_FORWARD_CHANGED,
 	LAST_SIGNAL,
 };
 
@@ -99,12 +100,26 @@ on_web_view_load_changed(BrowserWebView *web_view, WebKitLoadEvent load_event, B
 }
 
 static void
+on_back_forward_list_changed(WebKitBackForwardList *back_forward_list, WebKitBackForwardListItem *item_added, gpointer items_removed, BrowserTab *tab)
+{
+	gboolean can_go_back = webkit_web_view_can_go_back(WEBKIT_WEB_VIEW(tab->web_view));
+	gboolean can_go_forward = webkit_web_view_can_go_forward(WEBKIT_WEB_VIEW(tab->web_view));
+
+	g_signal_emit(tab, signals[BACK_FORWARD_CHANGED], 0, can_go_back, can_go_forward);
+}
+
+static void
 browser_tab_uri_changed(BrowserTab *tab)
 {
 }
 
 static void
 browser_tab_title_changed(BrowserTab *tab)
+{
+}
+
+static void
+browser_tab_back_forward_changed(BrowserTab *tab, gboolean can_go_back, gboolean can_go_forward)
 {
 }
 
@@ -135,6 +150,15 @@ browser_tab_class_init(BrowserTabClass *class)
 			NULL, NULL, NULL,
 			G_TYPE_NONE, 0);
 
+	signals[BACK_FORWARD_CHANGED] = g_signal_new_class_handler("back-forward-changed",
+			G_TYPE_FROM_CLASS(class),
+			G_SIGNAL_RUN_LAST,
+			G_CALLBACK(browser_tab_back_forward_changed),
+			NULL, NULL, NULL,
+			G_TYPE_NONE,
+			2,
+			G_TYPE_BOOLEAN, G_TYPE_BOOLEAN);
+
 	file = g_mapped_file_new("browser-tab.ui", FALSE, NULL);
 	if (!file) {
 		return;
@@ -149,7 +173,7 @@ browser_tab_class_init(BrowserTabClass *class)
 static void
 browser_tab_init(BrowserTab *tab)
 {
-//	char *uri = "https://www.google.ca";
+	WebKitBackForwardList *back_forward_list;
 
 	g_type_ensure(BROWSER_TYPE_WEB_VIEW);
 
@@ -160,7 +184,16 @@ browser_tab_init(BrowserTab *tab)
 	g_signal_connect(tab->web_view, "notify::title", G_CALLBACK(on_web_view_title_changed), tab);
 	g_signal_connect(tab->web_view, "load-changed", G_CALLBACK(on_web_view_load_changed), tab);
 
-//	webkit_web_view_load_uri(WEBKIT_WEB_VIEW(tab->web_view), uri);
+	back_forward_list = webkit_web_view_get_back_forward_list(WEBKIT_WEB_VIEW(tab->web_view));
+	g_signal_connect(back_forward_list, "changed", G_CALLBACK(on_back_forward_list_changed), tab);
+}
+
+BrowserWebView *
+browser_tab_get_web_view(BrowserTab *tab)
+{
+	g_return_val_if_fail(BROWSER_IS_TAB(tab), NULL);
+
+	return tab->web_view;
 }
 
 void

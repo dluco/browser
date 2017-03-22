@@ -17,7 +17,7 @@ struct _BrowserWindow
 	GtkApplicationWindow parent;
 
 	GtkWidget *box;
-	GtkWidget *toolbar;
+	BrowserToolbar *toolbar;
 	GtkWidget *notebook;
 };
 
@@ -34,8 +34,8 @@ update_uri_from_tab(BrowserWindow *window, BrowserTab *tab, gboolean overwrite)
 		uri = g_strdup("");
 	}
 
-	if (!browser_toolbar_is_entry_modified(BROWSER_TOOLBAR(window->toolbar)) || overwrite) {
-		browser_toolbar_set_entry_uri(BROWSER_TOOLBAR(window->toolbar), uri, FALSE);
+	if (!browser_toolbar_is_entry_modified(window->toolbar) || overwrite) {
+		browser_toolbar_set_entry_uri(window->toolbar, uri, FALSE);
 	}
 
 	g_free(uri);
@@ -111,6 +111,16 @@ on_tab_title_changed(BrowserTab *tab, BrowserWindow *window)
 }
 
 static void
+on_tab_back_forward_changed(BrowserTab *tab, gboolean can_go_back, gboolean can_go_forward, BrowserWindow *window)
+{
+	g_print("Window: tab back-forward changed\n");
+
+	if (tab == browser_window_get_active_tab(window)) {
+		browser_toolbar_update_buttons(window->toolbar, can_go_back, can_go_forward);
+	}
+}
+
+static void
 on_tab_added(GtkNotebook *notebook, GtkWidget *child, guint page_num, BrowserWindow *window)
 {
 	BrowserTab *tab = BROWSER_TAB(child);
@@ -122,6 +132,7 @@ on_tab_added(GtkNotebook *notebook, GtkWidget *child, guint page_num, BrowserWin
 	 */
 	g_signal_connect(tab, "uri-changed", G_CALLBACK(on_tab_uri_changed), window);
 	g_signal_connect(tab, "title-changed", G_CALLBACK(on_tab_title_changed), window);
+	g_signal_connect(tab, "back-forward-changed", G_CALLBACK(on_tab_back_forward_changed), window);
 }
 
 static void
@@ -134,6 +145,7 @@ on_tab_removed(GtkNotebook *notebook, GtkWidget *child, guint page_num, BrowserW
 
 	g_signal_handlers_disconnect_by_func(tab, G_CALLBACK(on_tab_uri_changed), window);
 	g_signal_handlers_disconnect_by_func(tab, G_CALLBACK(on_tab_title_changed), window);
+	g_signal_handlers_disconnect_by_func(tab, G_CALLBACK(on_tab_back_forward_changed), window);
 
 	/* TODO: Save the user inputed text in the toolbar entry? This is only
 	 * applicable if tabs will be restorable in the future.
@@ -156,6 +168,7 @@ on_tab_changed(GtkNotebook *notebook, GtkWidget *page, guint page_num, BrowserWi
 {
 	BrowserTab *incoming = BROWSER_TAB(page);
 	BrowserTab *outgoing;
+	BrowserWebView *web_view;
 	gchar *user_input = NULL;
 
 	g_print("Window: tab changed\n");
@@ -163,10 +176,10 @@ on_tab_changed(GtkNotebook *notebook, GtkWidget *page, guint page_num, BrowserWi
 	outgoing = browser_window_get_active_tab(window);
 
 	/* Save user inputed text in the toolbar entry. */
-	if (outgoing && browser_toolbar_is_entry_modified(BROWSER_TOOLBAR(window->toolbar))) {
+	if (outgoing && browser_toolbar_is_entry_modified(window->toolbar)) {
 		g_print("Window: saving user input in outgoing tab\n");
 
-		user_input = browser_toolbar_get_entry_text(BROWSER_TOOLBAR(window->toolbar));
+		user_input = browser_toolbar_get_entry_text(window->toolbar);
 		g_object_set_data(G_OBJECT(outgoing), SAVED_USER_INPUT, user_input);
 	}
 
@@ -175,7 +188,7 @@ on_tab_changed(GtkNotebook *notebook, GtkWidget *page, guint page_num, BrowserWi
 	if (user_input) {
 		g_print("Window: restoring user input from incoming tab\n");
 
-		browser_toolbar_set_entry_uri(BROWSER_TOOLBAR(window->toolbar), user_input, TRUE);
+		browser_toolbar_set_entry_uri(window->toolbar, user_input, TRUE);
 		/* Clear the saved text in the object. */
 		g_object_set_data(G_OBJECT(incoming), SAVED_USER_INPUT, NULL);
 		g_free(user_input);
@@ -184,6 +197,11 @@ on_tab_changed(GtkNotebook *notebook, GtkWidget *page, guint page_num, BrowserWi
 	}
 
 	update_title_from_tab(window, incoming);
+
+	web_view = browser_tab_get_web_view(incoming);
+	browser_toolbar_update_buttons(window->toolbar,
+			webkit_web_view_can_go_back(WEBKIT_WEB_VIEW(web_view)),
+			webkit_web_view_can_go_forward(WEBKIT_WEB_VIEW(web_view)));
 }
 
 static void

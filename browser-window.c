@@ -121,6 +121,12 @@ on_entry_activated(BrowserToolbar *toolbar, BrowserWindow *window)
 }
 
 static void
+on_tab_state_changed(BrowserTab *tab, GParamSpec *pspec, BrowserWindow *window)
+{
+	g_print("Window: tab state changed\n");
+}
+
+static void
 on_tab_uri_changed(BrowserTab *tab, BrowserWindow *window)
 {
 	g_print("Window: tab URI changed\n");
@@ -160,6 +166,7 @@ on_tab_added(GtkNotebook *notebook, GtkWidget *child, guint page_num, BrowserWin
 	/* IMPORTANT: Signal handlers connected here must be disconnected
 	 * when the tab is removed from the notebook.
 	 */
+	g_signal_connect(tab, "notify::state", G_CALLBACK(on_tab_state_changed), window);
 	g_signal_connect(tab, "uri-changed", G_CALLBACK(on_tab_uri_changed), window);
 	g_signal_connect(tab, "title-changed", G_CALLBACK(on_tab_title_changed), window);
 	g_signal_connect(tab, "back-forward-changed", G_CALLBACK(on_tab_back_forward_changed), window);

@@ -1,4 +1,5 @@
 #include "browser-tab-label.h"
+#include "browser-tab.h"
 #include <glib.h>
 
 struct _BrowserTabLabel
@@ -89,6 +90,35 @@ on_close_button_clicked(GtkWidget *widget, BrowserTabLabel *tab_label)
 }
 
 static void
+on_tab_state_changed(BrowserTab *tab, GParamSpec *pspec, BrowserTabLabel *tab_label)
+{
+	BrowserTabState state;
+	gboolean show_spinner = FALSE;
+
+	g_return_if_fail(tab == tab_label->tab);
+
+	state = browser_tab_get_state(tab);
+
+	switch (state) {
+		case BROWSER_TAB_STATE_LOADING:
+			show_spinner = TRUE;
+			break;
+		default:
+			break;
+	}
+
+	g_print("Tab-label: show_spinner = %s\n", (show_spinner) ? "true" : "false");
+
+	if (show_spinner)
+		gtk_spinner_start(GTK_SPINNER(tab_label->spinner));
+	else
+		gtk_spinner_stop(GTK_SPINNER(tab_label->spinner));
+
+	gtk_widget_set_visible(tab_label->icon, !show_spinner);
+	gtk_widget_set_visible(tab_label->spinner, show_spinner);
+}
+
+static void
 on_tab_title_changed(BrowserTab *tab, BrowserTabLabel *tab_label)
 {
 	gchar *str;
@@ -102,14 +132,6 @@ on_tab_title_changed(BrowserTab *tab, BrowserTabLabel *tab_label)
 	g_free(str);
 
 	update_tooltip(tab_label);
-}
-
-static void
-on_tab_state_changed(BrowserTab *tab, GParamSpec *pspec, BrowserTabLabel *tab_label)
-{
-	g_return_if_fail(tab == tab_label->tab);
-
-	/* TODO: Sync state. */
 }
 
 static void
@@ -130,8 +152,8 @@ browser_tab_label_constructed(GObject *object)
 	on_tab_title_changed(tab_label->tab, tab_label);
 	on_tab_state_changed(tab_label->tab, NULL, tab_label);
 
-	g_signal_connect(tab_label->tab, "title-changed", G_CALLBACK(on_tab_title_changed), tab_label);
 	g_signal_connect_object(tab_label->tab, "notify::state", G_CALLBACK(on_tab_state_changed), tab_label, 0);
+	g_signal_connect(tab_label->tab, "title-changed", G_CALLBACK(on_tab_title_changed), tab_label);
 
 	G_OBJECT_CLASS(browser_tab_label_parent_class)->constructed(object);
 }

@@ -8,6 +8,8 @@ struct _BrowserTab
 {
 	GtkBox parent;
 
+	BrowserTabState state;
+
 	BrowserWebView *web_view;
 };
 
@@ -47,15 +49,26 @@ browser_tab_set_property(GObject *object, guint prop_id, const GValue *value, GP
 static void
 browser_tab_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-//	BrowserTab *tab = BROWSER_TAB(object);
+	BrowserTab *tab = BROWSER_TAB(object);
 
 	switch (prop_id) {
 		case PROP_STATE:
-			/* TODO: Set state prop. */
+			g_value_set_enum(value, browser_tab_get_state(tab));
 			break;
 		default:
 			break;
 	}
+}
+
+static void
+set_state(BrowserTab *tab, BrowserTabState state)
+{
+	g_return_if_fail((state >= 0) && (state < BROWSER_TAB_NUM_STATES));
+
+	if (tab->state == state)
+		return;
+
+	tab->state = state;
 }
 
 static void
@@ -82,18 +95,27 @@ on_web_view_title_changed(BrowserWebView *web_view, GParamSpec *pspec, BrowserTa
 static void
 on_web_view_load_changed(BrowserWebView *web_view, WebKitLoadEvent load_event, BrowserTab *tab)
 {
+	BrowserTabState newState;
+
 	switch (load_event) {
 		case WEBKIT_LOAD_STARTED:
+			newState = BROWSER_TAB_STATE_LOADING;
 			break;
 		case WEBKIT_LOAD_REDIRECTED:
+			newState = BROWSER_TAB_STATE_LOADING;
 			break;
 		case WEBKIT_LOAD_COMMITTED:
+			newState = BROWSER_TAB_STATE_LOADING;
 			break;
 		case WEBKIT_LOAD_FINISHED:
+			newState = BROWSER_TAB_STATE_NORMAL;
 			break;
 		default:
+			newState = BROWSER_TAB_STATE_NORMAL;
 			break;
 	}
+
+	set_state(tab, newState);
 
 	/* Notify the change in the tab state. */
 	g_object_notify_by_pspec(G_OBJECT(tab), properties[PROP_STATE]);
@@ -107,6 +129,8 @@ on_back_forward_list_changed(WebKitBackForwardList *back_forward_list, WebKitBac
 
 	g_signal_emit(tab, signals[BACK_FORWARD_CHANGED], 0, can_go_back, can_go_forward);
 }
+
+/* Default signal handlers. */
 
 static void
 browser_tab_uri_changed(BrowserTab *tab)
@@ -175,8 +199,9 @@ browser_tab_init(BrowserTab *tab)
 {
 	WebKitBackForwardList *back_forward_list;
 
-	g_type_ensure(BROWSER_TYPE_WEB_VIEW);
+	tab->state = BROWSER_TAB_STATE_NORMAL;
 
+	g_type_ensure(BROWSER_TYPE_WEB_VIEW);
 	gtk_widget_init_template(GTK_WIDGET(tab));
 
 	g_signal_connect(tab, "grab-focus", G_CALLBACK(on_tab_grab_focus), NULL);
@@ -186,6 +211,14 @@ browser_tab_init(BrowserTab *tab)
 
 	back_forward_list = webkit_web_view_get_back_forward_list(WEBKIT_WEB_VIEW(tab->web_view));
 	g_signal_connect(back_forward_list, "changed", G_CALLBACK(on_back_forward_list_changed), tab);
+}
+
+BrowserTabState
+browser_tab_get_state(BrowserTab *tab)
+{
+	g_return_val_if_fail(BROWSER_IS_TAB(tab), BROWSER_TAB_STATE_NORMAL);
+
+	return tab->state;
 }
 
 BrowserWebView *

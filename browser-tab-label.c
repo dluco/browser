@@ -1,4 +1,5 @@
 #include "browser-tab-label.h"
+#include <glib.h>
 
 struct _BrowserTabLabel
 {
@@ -66,14 +67,19 @@ static void
 update_tooltip(BrowserTabLabel *tab_label)
 {
 	gchar *str;
+	gchar *escaped;
 
 	g_return_if_fail(tab_label->tab != NULL);
 
 	str = browser_tab_get_title(tab_label->tab);
 	g_return_if_fail(str != NULL);
 
-	gtk_widget_set_tooltip_markup(GTK_WIDGET(tab_label), str);
+	escaped = g_markup_escape_text(str, -1);
+
+	gtk_widget_set_tooltip_markup(GTK_WIDGET(tab_label), escaped);
+
 	g_free(str);
+	g_free(escaped);
 }
 
 static void

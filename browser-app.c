@@ -15,12 +15,18 @@ browser_app_startup(GApplication *g_application)
 {
 	WebKitWebContext *web_context;
 	WebKitCookieManager *cookie_manager;
+	gchar *path;
 
 	G_APPLICATION_CLASS(browser_app_parent_class)->startup(g_application);
 
 	web_context = webkit_web_context_get_default();
-	cookie_manager = webkit_web_context_get_cookie_manager(web_context);
 
+	/* Set and enable favicon database. */
+	path = g_build_filename(g_get_user_data_dir(), "browser", "icondatabase", NULL);
+	webkit_web_context_set_favicon_database_directory(web_context, path);
+	g_free(path);
+
+	cookie_manager = webkit_web_context_get_cookie_manager(web_context);
 	webkit_cookie_manager_set_persistent_storage(cookie_manager, "cookies.sqlite", WEBKIT_COOKIE_PERSISTENT_STORAGE_SQLITE);
 }
 

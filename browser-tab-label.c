@@ -1,6 +1,8 @@
 #include "browser-tab-label.h"
 #include "browser-tab.h"
 #include <glib.h>
+#include <gdk/gdk.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
 
 struct _BrowserTabLabel
 {
@@ -134,6 +136,49 @@ on_tab_title_changed(BrowserTab *tab, BrowserTabLabel *tab_label)
 	update_tooltip(tab_label);
 }
 
+/* TODO: Move to utils file. */
+GdkPixbuf *
+get_scaled_pixbuf_from_surface(cairo_surface_t *surface, int width, int height)
+{
+	GdkPixbuf *pixbuf;
+	int surface_width;
+	int surface_height;
+
+	if (!surface)
+		return NULL;
+
+	surface_width = cairo_image_surface_get_width(surface);
+	surface_height = cairo_image_surface_get_height(surface);
+	pixbuf = gdk_pixbuf_get_from_surface(surface, 0, 0, surface_width, surface_height);
+
+	if (width && height && (surface_width != width || surface_height != height)) {
+		GdkPixbuf *scaled_pixbuf = gdk_pixbuf_scale_simple(pixbuf, width, height, GDK_INTERP_BILINEAR);
+		g_object_unref(pixbuf);
+		pixbuf = scaled_pixbuf;
+	}
+
+	return pixbuf;
+}
+
+static void
+on_web_view_favicon_changed(BrowserWebView *web_view, GParamSpec *pspec, BrowserTabLabel *tab_label)
+{
+	cairo_surface_t *favicon_surface;
+	GdkPixbuf *pixbuf;
+
+	g_print("Tab-label: favicon changed\n");
+
+	/* TODO: Maintain ref (as property) to pixbuf and unref when favicon changes. */
+
+	/* TODO: Move to BrowserWebView (getting scaled pixbuf)? */
+
+	favicon_surface = webkit_web_view_get_favicon(WEBKIT_WEB_VIEW(web_view));
+	if (favicon_surface) {
+		pixbuf = get_scaled_pixbuf_from_surface(favicon_surface, 16, 16);
+		gtk_image_set_from_pixbuf(GTK_IMAGE(tab_label->icon), pixbuf);
+	}
+}
+
 static void
 browser_tab_label_close_clicked(BrowserTabLabel *tab_label)
 {
@@ -143,17 +188,23 @@ static void
 browser_tab_label_constructed(GObject *object)
 {
 	BrowserTabLabel *tab_label = BROWSER_TAB_LABEL(object);
+	BrowserTab *tab = tab_label->tab;
+	BrowserWebView *web_view;
 
-	if (!tab_label->tab) {
+	if (!tab) {
 		g_critical("The tab label is missing a corresponding tab");
 		return;
 	}
 
-	on_tab_title_changed(tab_label->tab, tab_label);
-	on_tab_state_changed(tab_label->tab, NULL, tab_label);
+	web_view = browser_tab_get_web_view(tab);
 
-	g_signal_connect_object(tab_label->tab, "notify::state", G_CALLBACK(on_tab_state_changed), tab_label, 0);
-	g_signal_connect(tab_label->tab, "title-changed", G_CALLBACK(on_tab_title_changed), tab_label);
+	/* TODO: Do not use signal callbacks imperatively. */
+	on_tab_title_changed(tab, tab_label);
+	on_tab_state_changed(tab, NULL, tab_label);
+
+	g_signal_connect_object(tab, "notify::state", G_CALLBACK(on_tab_state_changed), tab_label, 0);
+	g_signal_connect(tab, "title-changed", G_CALLBACK(on_tab_title_changed), tab_label);
+	g_signal_connect(web_view, "notify::favicon", G_CALLBACK(on_web_view_favicon_changed), tab_label);
 
 	G_OBJECT_CLASS(browser_tab_label_parent_class)->constructed(object);
 }

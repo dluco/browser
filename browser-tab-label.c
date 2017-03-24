@@ -176,6 +176,9 @@ on_web_view_favicon_changed(BrowserWebView *web_view, GParamSpec *pspec, Browser
 	if (favicon_surface) {
 		pixbuf = get_scaled_pixbuf_from_surface(favicon_surface, 16, 16);
 		gtk_image_set_from_pixbuf(GTK_IMAGE(tab_label->icon), pixbuf);
+		g_object_unref(pixbuf);
+	} else {
+		gtk_image_clear(GTK_IMAGE(tab_label->icon));
 	}
 }
 

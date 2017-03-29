@@ -36,8 +36,6 @@ win_toggle_fullscreen(GSimpleAction *action,
 		browser_window_fullscreen(window);
 	else
 		browser_window_unfullscreen(window);
-
-	g_simple_action_set_state(action, state);
 }
 
 static const GActionEntry win_action_entries[] = {
@@ -58,6 +56,22 @@ get_state(BrowserWindow *window)
 		state = gdk_window_get_state(gdk_window);
 
 	return state;
+}
+
+static void
+update_fullscreen_state(BrowserWindow *window,
+		gboolean is_fullscreen)
+{
+	GAction *action;
+
+	g_return_if_fail(BROWSER_IS_WINDOW(window));
+
+	action = g_action_map_lookup_action(G_ACTION_MAP(window),
+			"fullscreen");
+	if (action) {
+		g_simple_action_set_state(G_SIMPLE_ACTION(action),
+				g_variant_new_boolean(is_fullscreen));
+	}
 }
 
 static void
@@ -106,6 +120,21 @@ update_title(BrowserWindow *window)
 {
 	BrowserTab *tab = browser_window_get_active_tab(window);
 	update_title_from_tab(window, tab);
+}
+
+static gboolean
+window_state_event(GtkWidget *widget,
+		GdkEventWindowState *event)
+{
+	BrowserWindow *window = BROWSER_WINDOW(widget);
+
+	g_print("Window: window state event\n");
+
+	/* Update win.fullscreen action if window fullscreen state changed. */
+	if (event->changed_mask & GDK_WINDOW_STATE_FULLSCREEN)
+		update_fullscreen_state(window, event->new_window_state & GDK_WINDOW_STATE_FULLSCREEN);
+
+	return GTK_WIDGET_CLASS(browser_window_parent_class)->window_state_event(widget, event);
 }
 
 static void
@@ -300,6 +329,8 @@ browser_window_class_init(BrowserWindowClass *class)
 	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(class);
 	GMappedFile *file;
 	GBytes *bytes;
+
+	widget_class->window_state_event = window_state_event;
 
 	file = g_mapped_file_new("browser-window.ui", FALSE, NULL);
 	if (!file) {

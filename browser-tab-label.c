@@ -1,8 +1,8 @@
 #include "browser-tab-label.h"
 #include "browser-tab.h"
-#include <glib.h>
-#include <gdk/gdk.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
+#include <gdk/gdk.h>
+#include <glib.h>
 
 struct _BrowserTabLabel
 {

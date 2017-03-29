@@ -9,8 +9,12 @@ struct _BrowserToolbar
 
 	GtkWidget *back_button;
 	GtkWidget *forward_button;
+	GtkWidget *stop_reload_button;
 	GtkWidget *entry;
 	GtkWidget *home_button;
+
+	GtkWidget *stop_image;
+	GtkWidget *reload_image;
 
 	gboolean entry_modified;
 };
@@ -19,6 +23,7 @@ enum
 {
 	BACK_CLICKED,
 	FORWARD_CLICKED,
+	STOP_RELOAD_CLICKED,
 	ENTRY_ACTIVATED,
 	LAST_SIGNAL
 };
@@ -39,6 +44,14 @@ static void
 on_forward_button_clicked(GtkWidget *widget, BrowserToolbar *toolbar)
 {
 	g_print("Toolbar: forward button clicked\n");
+
+	g_signal_emit(toolbar, signals[FORWARD_CLICKED], 0, NULL);
+}
+
+static void
+on_stop_reload_button_clicked(GtkWidget *widget, BrowserToolbar *toolbar)
+{
+	g_print("Toolbar: stop/reload button clicked\n");
 
 	g_signal_emit(toolbar, signals[FORWARD_CLICKED], 0, NULL);
 }
@@ -121,8 +134,11 @@ browser_toolbar_class_init(BrowserToolbarClass *class)
 
 	gtk_widget_class_bind_template_child(widget_class, BrowserToolbar, back_button);
 	gtk_widget_class_bind_template_child(widget_class, BrowserToolbar, forward_button);
+	gtk_widget_class_bind_template_child(widget_class, BrowserToolbar, stop_reload_button);
 	gtk_widget_class_bind_template_child(widget_class, BrowserToolbar, entry);
 	gtk_widget_class_bind_template_child(widget_class, BrowserToolbar, home_button);
+	gtk_widget_class_bind_template_child(widget_class, BrowserToolbar, stop_image);
+	gtk_widget_class_bind_template_child(widget_class, BrowserToolbar, reload_image);
 }
 
 static void
@@ -136,6 +152,7 @@ browser_toolbar_init(BrowserToolbar *toolbar)
 
 	g_signal_connect(toolbar->back_button, "clicked", G_CALLBACK(on_back_button_clicked), toolbar);
 	g_signal_connect(toolbar->forward_button, "clicked", G_CALLBACK(on_forward_button_clicked), toolbar);
+	g_signal_connect(toolbar->stop_reload_button, "clicked", G_CALLBACK(on_stop_reload_button_clicked), toolbar);
 
 	buffer = gtk_entry_get_buffer(GTK_ENTRY(toolbar->entry));
 

@@ -37,7 +37,7 @@
         <property name="can_focus">False</property>
         <property name="label" translatable="yes">Reload</property>
         <property name="use_underline">True</property>
-        <property name="icon-widget">stop_button_image</property>
+        <property name="icon-widget">stop_image</property>
       </object>
       <packing>
         <property name="expand">False</property>
@@ -75,11 +75,11 @@
       </packing>
     </child>
   </template>
-  <object class="GtkImage" id="stop_button_image">
+  <object class="GtkImage" id="stop_image">
     <property name="visible">True</property>
     <property name="icon_name">gtk-stop</property>
   </object>
-  <object class="GtkImage" id="reload_button_image">
+  <object class="GtkImage" id="reload_image">
     <property name="visible">True</property>
     <property name="icon_name">gtk-refresh</property>
   </object>

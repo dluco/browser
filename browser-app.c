@@ -1,5 +1,8 @@
 #include "browser-app.h"
+
 #include "browser-window.h"
+
+#include <gio/gio.h>
 #include <gtk/gtk.h>
 #include <webkit2/webkit2.h>
 
@@ -10,14 +13,51 @@ struct _BrowserApp
 
 G_DEFINE_TYPE(BrowserApp, browser_app, GTK_TYPE_APPLICATION)
 
+typedef struct _AccelEntry {
+	const gchar *detailed_action_name;
+	const gchar *accel;
+} AccelEntry;
+
+static void
+app_quit_action_activated(GSimpleAction *action,
+		GVariant *parameter,
+		gpointer user_data)
+{
+	BrowserApp *app = BROWSER_APP(user_data);
+
+	g_application_quit(G_APPLICATION(app));
+}
+
+static const GActionEntry app_action_entries[] = {
+	{ "quit", app_quit_action_activated },
+};
+
+static const AccelEntry app_accel_entries[] = {
+	{ "app.quit", "<Control>Q" },
+};
+
 static void
 browser_app_startup(GApplication *g_application)
 {
+	BrowserApp *app = BROWSER_APP(g_application);
 	WebKitWebContext *web_context;
 	WebKitCookieManager *cookie_manager;
 	gchar *path;
 
 	G_APPLICATION_CLASS(browser_app_parent_class)->startup(g_application);
+
+	g_action_map_add_action_entries(G_ACTION_MAP(app),
+			app_action_entries,
+			G_N_ELEMENTS(app_action_entries),
+			app);
+
+	/* Associate accelerators with actions. */
+	for (int i = 0; i < G_N_ELEMENTS(app_accel_entries); i++) {
+		const gchar *accels[] = {app_accel_entries[i].accel, NULL};
+		gtk_application_set_accels_for_action(GTK_APPLICATION(app),
+				app_accel_entries[i].detailed_action_name,
+				accels);
+	}
 
 	web_context = webkit_web_context_get_default();
 

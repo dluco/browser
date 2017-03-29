@@ -18,9 +18,9 @@ typedef struct _AccelEntry {
 } AccelEntry;
 
 static void
-app_quit_action_activated(GSimpleAction *action,
-						  GVariant      *parameter,
-						  gpointer       user_data)
+app_activate_quit(GSimpleAction *action,
+				  GVariant      *parameter,
+				  gpointer       user_data)
 {
 	BrowserApp *app = BROWSER_APP(user_data);
 
@@ -28,11 +28,12 @@ app_quit_action_activated(GSimpleAction *action,
 }
 
 static const GActionEntry app_action_entries[] = {
-	{ "quit", app_quit_action_activated },
+	{ "quit", app_activate_quit },
 };
 
 static const AccelEntry app_accel_entries[] = {
 	{ "app.quit", "<Control>Q" },
+	{ "win.fullscreen", "F11" },
 };
 
 static void

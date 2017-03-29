@@ -1,9 +1,11 @@
 #include "browser-window.h"
+
 #include "browser-app.h"
 #include "browser-notebook.h"
 #include "browser-tab.h"
 #include "browser-toolbar.h"
 #include "browser-web-view.h"
+
 #include <glib.h>
 #include <glib/gstdio.h>
 #include <gtk/gtk.h>
@@ -22,6 +24,41 @@ struct _BrowserWindow
 };
 
 G_DEFINE_TYPE(BrowserWindow, browser_window, GTK_TYPE_APPLICATION_WINDOW)
+
+static void
+win_toggle_fullscreen(GSimpleAction *action,
+		GVariant *state,
+		gpointer user_data)
+{
+	BrowserWindow *window = BROWSER_WINDOW(user_data);
+
+	if (g_variant_get_boolean(state))
+		browser_window_fullscreen(window);
+	else
+		browser_window_unfullscreen(window);
+
+	g_simple_action_set_state(action, state);
+}
+
+static const GActionEntry win_action_entries[] = {
+	{ "fullscreen", NULL, NULL, "false",  win_toggle_fullscreen },
+};
+
+static GdkWindowState
+get_state(BrowserWindow *window)
+{
+	GdkWindow *gdk_window;
+	GdkWindowState state = 0;
+
+	g_return_val_if_fail(BROWSER_IS_WINDOW(window), 0);
+
+	/* GdkWindow can be NULL if window is not realized. */
+	gdk_window = gtk_widget_get_window(GTK_WIDGET(window));
+	if (gdk_window)
+		state = gdk_window_get_state(gdk_window);
+
+	return state;
+}
 
 static void
 update_uri_from_tab(BrowserWindow *window, BrowserTab *tab, gboolean overwrite)
@@ -287,6 +324,11 @@ browser_window_init(BrowserWindow *window)
 
 	gtk_widget_init_template(GTK_WIDGET(window));
 
+	g_action_map_add_action_entries(G_ACTION_MAP(window),
+			win_action_entries,
+			G_N_ELEMENTS(win_action_entries),
+			window);
+
 	g_signal_connect(window->toolbar, "back-clicked", G_CALLBACK(on_back_clicked), window);
 	g_signal_connect(window->toolbar, "forward-clicked", G_CALLBACK(on_forward_clicked), window);
 	g_signal_connect(window->toolbar, "entry-activated", G_CALLBACK(on_entry_activated), window);
@@ -366,6 +408,40 @@ browser_window_close_tab(BrowserWindow *window, BrowserTab *tab)
 	if (page_num > -1) {
 		gtk_notebook_remove_page(GTK_NOTEBOOK(window->notebook), page_num);
 	}
+}
+
+void
+browser_window_fullscreen(BrowserWindow *window)
+{
+	g_return_if_fail(BROWSER_IS_WINDOW(window));
+
+	if (browser_window_is_fullscreen(window))
+		return;
+
+	gtk_window_fullscreen(GTK_WINDOW(window));
+}
+
+void
+browser_window_unfullscreen(BrowserWindow *window)
+{
+	g_return_if_fail(BROWSER_IS_WINDOW(window));
+
+	if (!browser_window_is_fullscreen(window))
+		return;
+
+	gtk_window_unfullscreen(GTK_WINDOW(window));
+}
+
+gboolean
+browser_window_is_fullscreen(BrowserWindow *window)
+{
+	GdkWindowState state;
+
+	g_return_val_if_fail(BROWSER_IS_WINDOW(window), FALSE);
+
+	state = get_state(window);
+
+	return state & GDK_WINDOW_STATE_FULLSCREEN;
 }
 
 BrowserWindow *

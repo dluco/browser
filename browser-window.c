@@ -14,8 +14,7 @@
 
 #define SAVED_USER_INPUT "saved-user-input"
 
-struct _BrowserWindow
-{
+struct _BrowserWindow {
 	GtkApplicationWindow parent;
 
 	GtkWidget *box;
@@ -27,8 +26,8 @@ G_DEFINE_TYPE(BrowserWindow, browser_window, GTK_TYPE_APPLICATION_WINDOW)
 
 static void
 win_toggle_fullscreen(GSimpleAction *action,
-		GVariant *state,
-		gpointer user_data)
+					  GVariant      *state,
+					  gpointer       user_data)
 {
 	BrowserWindow *window = BROWSER_WINDOW(user_data);
 
@@ -39,7 +38,7 @@ win_toggle_fullscreen(GSimpleAction *action,
 }
 
 static const GActionEntry win_action_entries[] = {
-	{ "fullscreen", NULL, NULL, "false",  win_toggle_fullscreen },
+	{ "fullscreen", NULL, NULL, "false", win_toggle_fullscreen },
 };
 
 static GdkWindowState
@@ -60,48 +59,48 @@ get_state(BrowserWindow *window)
 
 static void
 update_fullscreen_state(BrowserWindow *window,
-		gboolean is_fullscreen)
+						gboolean       is_fullscreen)
 {
 	GAction *action;
 
 	g_return_if_fail(BROWSER_IS_WINDOW(window));
 
 	action = g_action_map_lookup_action(G_ACTION_MAP(window),
-			"fullscreen");
+										"fullscreen");
 	if (action) {
 		g_simple_action_set_state(G_SIMPLE_ACTION(action),
-				g_variant_new_boolean(is_fullscreen));
+								  g_variant_new_boolean(is_fullscreen));
 	}
 }
 
 static void
-update_uri_from_tab(BrowserWindow *window, BrowserTab *tab, gboolean overwrite)
+update_uri_from_tab(BrowserWindow *window,
+					BrowserTab    *tab,
+					gboolean       overwrite)
 {
 	gchar *uri;
 
-	if (tab) {
+	if (tab)
 		uri = browser_tab_get_uri(tab);
-	} else {
+	else
 		uri = g_strdup("");
-	}
 
-	if (!browser_toolbar_is_entry_modified(window->toolbar) || overwrite) {
+	if (!browser_toolbar_is_entry_modified(window->toolbar) || overwrite)
 		browser_toolbar_set_entry_uri(window->toolbar, uri, FALSE);
-	}
 
 	g_free(uri);
 }
 
 static void
-update_title_from_tab(BrowserWindow *window, BrowserTab *tab)
+update_title_from_tab(BrowserWindow *window,
+					  BrowserTab    *tab)
 {
 	gchar *title;
 
-	if (tab) {
+	if (tab)
 		title = browser_tab_get_title(tab);
-	} else {
+	else
 		title = g_strdup("Browser");
-	}
 
 	gtk_window_set_title(GTK_WINDOW(window), title);
 
@@ -109,7 +108,8 @@ update_title_from_tab(BrowserWindow *window, BrowserTab *tab)
 }
 
 static void
-update_uri(BrowserWindow *window, gboolean overwrite)
+update_uri(BrowserWindow *window,
+		   gboolean       overwrite)
 {
 	BrowserTab *tab = browser_window_get_active_tab(window);
 	update_uri_from_tab(window, tab, overwrite);
@@ -123,8 +123,8 @@ update_title(BrowserWindow *window)
 }
 
 static gboolean
-window_state_event(GtkWidget *widget,
-		GdkEventWindowState *event)
+window_state_event(GtkWidget           *widget,
+				   GdkEventWindowState *event)
 {
 	BrowserWindow *window = BROWSER_WINDOW(widget);
 
@@ -138,7 +138,8 @@ window_state_event(GtkWidget *widget,
 }
 
 static void
-on_back_clicked(BrowserToolbar *toolbar, BrowserWindow *window)
+on_back_clicked(BrowserToolbar *toolbar,
+				BrowserWindow  *window)
 {
 	BrowserTab *tab;
 	BrowserWebView *web_view;
@@ -153,7 +154,8 @@ on_back_clicked(BrowserToolbar *toolbar, BrowserWindow *window)
 }
 
 static void
-on_forward_clicked(BrowserToolbar *toolbar, BrowserWindow *window)
+on_forward_clicked(BrowserToolbar *toolbar,
+				   BrowserWindow  *window)
 {
 	BrowserTab *tab;
 	BrowserWebView *web_view;
@@ -168,7 +170,8 @@ on_forward_clicked(BrowserToolbar *toolbar, BrowserWindow *window)
 }
 
 static void
-on_entry_activated(BrowserToolbar *toolbar, BrowserWindow *window)
+on_entry_activated(BrowserToolbar *toolbar,
+				   BrowserWindow  *window)
 {
 	BrowserTab *tab;
 	gchar *entry_text;
@@ -187,43 +190,50 @@ on_entry_activated(BrowserToolbar *toolbar, BrowserWindow *window)
 }
 
 static void
-on_tab_state_changed(BrowserTab *tab, GParamSpec *pspec, BrowserWindow *window)
+on_tab_state_changed(BrowserTab    *tab,
+					 GParamSpec    *pspec,
+					 BrowserWindow *window)
 {
 	g_print("Window: tab state changed\n");
 }
 
 static void
-on_tab_uri_changed(BrowserTab *tab, BrowserWindow *window)
+on_tab_uri_changed(BrowserTab    *tab,
+				   BrowserWindow *window)
 {
 	g_print("Window: tab URI changed\n");
 
-	if (tab == browser_window_get_active_tab(window)) {
+	if (tab == browser_window_get_active_tab(window))
 		update_uri(window, FALSE);
-	}
 }
 
 static void
-on_tab_title_changed(BrowserTab *tab, BrowserWindow *window)
+on_tab_title_changed(BrowserTab    *tab,
+					 BrowserWindow *window)
 {
 	g_print("Window: tab title changed\n");
 
-	if (tab == browser_window_get_active_tab(window)) {
+	if (tab == browser_window_get_active_tab(window))
 		update_title(window);
-	}
 }
 
 static void
-on_tab_back_forward_changed(BrowserTab *tab, gboolean can_go_back, gboolean can_go_forward, BrowserWindow *window)
+on_tab_back_forward_changed(BrowserTab    *tab,
+							gboolean       can_go_back,
+							gboolean       can_go_forward,
+							BrowserWindow *window)
 {
 	g_print("Window: tab back-forward changed\n");
 
-	if (tab == browser_window_get_active_tab(window)) {
+	if (tab == browser_window_get_active_tab(window))
 		browser_toolbar_update_buttons(window->toolbar, can_go_back, can_go_forward);
-	}
 }
 
 static void
-on_tab_added(GtkNotebook *notebook, GtkWidget *child, guint page_num, BrowserWindow *window)
+on_tab_added(GtkNotebook   *notebook,
+			 GtkWidget     *child,
+			 guint          page_num,
+			 BrowserWindow *window)
 {
 	BrowserTab *tab = BROWSER_TAB(child);
 
@@ -239,7 +249,10 @@ on_tab_added(GtkNotebook *notebook, GtkWidget *child, guint page_num, BrowserWin
 }
 
 static void
-on_tab_removed(GtkNotebook *notebook, GtkWidget *child, guint page_num, BrowserWindow *window)
+on_tab_removed(GtkNotebook   *notebook,
+			   GtkWidget     *child,
+			   guint          page_num,
+			   BrowserWindow *window)
 {
 	BrowserTab *tab = BROWSER_TAB(child);
 	char *user_input;
@@ -267,7 +280,10 @@ on_tab_removed(GtkNotebook *notebook, GtkWidget *child, guint page_num, BrowserW
 }
 
 static void
-on_tab_changed(GtkNotebook *notebook, GtkWidget *page, guint page_num, BrowserWindow *window)
+on_tab_changed(GtkNotebook   *notebook,
+			   GtkWidget     *page,
+			   guint          page_num,
+			   BrowserWindow *window)
 {
 	BrowserTab *incoming = BROWSER_TAB(page);
 	BrowserTab *outgoing;
@@ -295,28 +311,31 @@ on_tab_changed(GtkNotebook *notebook, GtkWidget *page, guint page_num, BrowserWi
 		/* Clear the saved text in the object. */
 		g_object_set_data(G_OBJECT(incoming), SAVED_USER_INPUT, NULL);
 		g_free(user_input);
-	} else {
+	} else
 		update_uri_from_tab(window, incoming, TRUE);
-	}
 
 	update_title_from_tab(window, incoming);
 
 	web_view = browser_tab_get_web_view(incoming);
 	browser_toolbar_update_buttons(window->toolbar,
-			webkit_web_view_can_go_back(WEBKIT_WEB_VIEW(web_view)),
-			webkit_web_view_can_go_forward(WEBKIT_WEB_VIEW(web_view)));
+								   webkit_web_view_can_go_back(WEBKIT_WEB_VIEW(web_view)),
+								   webkit_web_view_can_go_forward(WEBKIT_WEB_VIEW(web_view)));
 }
 
 static void
-on_new_tab_clicked(BrowserNotebook *notebook, BrowserWindow *window)
+on_new_tab_clicked(BrowserNotebook *notebook,
+				   BrowserWindow   *window)
 {
 	g_print("Window: new tab clicked\n");
 
-	browser_window_create_tab_from_uri(window, "about:blank", -1, TRUE); // TODO: Set jump_to from settings.
+	// TODO: Set jump_to from settings.
+	browser_window_create_tab_from_uri(window, "about:blank", -1, TRUE);
 }
 
 static void
-on_close_tab_clicked(BrowserNotebook *notebook, BrowserTab *tab, BrowserWindow *window)
+on_close_tab_clicked(BrowserNotebook *notebook,
+					 BrowserTab      *tab,
+					 BrowserWindow   *window)
 {
 	g_print("Window: close tab clicked\n");
 
@@ -333,9 +352,8 @@ browser_window_class_init(BrowserWindowClass *class)
 	widget_class->window_state_event = window_state_event;
 
 	file = g_mapped_file_new("browser-window.ui", FALSE, NULL);
-	if (!file) {
+	if (!file)
 		return;
-	}
 	bytes = g_mapped_file_get_bytes(file);
 
 	gtk_widget_class_set_template(widget_class, bytes);
@@ -356,9 +374,9 @@ browser_window_init(BrowserWindow *window)
 	gtk_widget_init_template(GTK_WIDGET(window));
 
 	g_action_map_add_action_entries(G_ACTION_MAP(window),
-			win_action_entries,
-			G_N_ELEMENTS(win_action_entries),
-			window);
+									win_action_entries,
+									G_N_ELEMENTS(win_action_entries),
+									window);
 
 	g_signal_connect(window->toolbar, "back-clicked", G_CALLBACK(on_back_clicked), window);
 	g_signal_connect(window->toolbar, "forward-clicked", G_CALLBACK(on_forward_clicked), window);
@@ -383,7 +401,10 @@ browser_window_get_active_tab(BrowserWindow *window)
 }
 
 static BrowserTab *
-process_create_tab(BrowserWindow *window, BrowserTab *tab, gint position, gboolean jump_to)
+process_create_tab(BrowserWindow *window,
+				   BrowserTab    *tab,
+				   gint           position,
+				   gboolean       jump_to)
 {
 	g_return_val_if_fail(BROWSER_IS_WINDOW(window), NULL);
 	g_return_val_if_fail(BROWSER_IS_TAB(tab), NULL);
@@ -392,15 +413,17 @@ process_create_tab(BrowserWindow *window, BrowserTab *tab, gint position, gboole
 	browser_notebook_add_tab(BROWSER_NOTEBOOK(window->notebook), tab, position, jump_to);
 
 	/* Present window is necessary. */
-	if (!gtk_widget_get_visible(GTK_WIDGET(window))) {
+	if (!gtk_widget_get_visible(GTK_WIDGET(window)))
 		gtk_window_present(GTK_WINDOW(window));
-	}
 
 	return tab;
 }
 
 BrowserTab *
-browser_window_create_tab_from_uri(BrowserWindow *window, const gchar *uri, gint position, gboolean jump_to)
+browser_window_create_tab_from_uri(BrowserWindow *window,
+								   const gchar   *uri,
+								   gint           position,
+								   gboolean       jump_to)
 {
 	GtkWidget *tab;
 
@@ -415,18 +438,20 @@ browser_window_create_tab_from_uri(BrowserWindow *window, const gchar *uri, gint
 }
 
 void
-browser_window_open(BrowserWindow *window, const gchar *uri)
+browser_window_open(BrowserWindow *window,
+					const gchar   *uri)
 {
 	g_return_if_fail(BROWSER_IS_WINDOW(window));
 	g_return_if_fail(uri != NULL);
 
 	/* TODO: Check whether the uri is already open in a tab, etc. */
-
-	browser_window_create_tab_from_uri(window, uri, -1, TRUE); // TODO: Set jump_to from settings.
+	// TODO: Set jump_to from settings.
+	browser_window_create_tab_from_uri(window, uri, -1, TRUE);
 }
 
 void
-browser_window_close_tab(BrowserWindow *window, BrowserTab *tab)
+browser_window_close_tab(BrowserWindow *window,
+						 BrowserTab    *tab)
 {
 	gint page_num;
 
@@ -436,9 +461,8 @@ browser_window_close_tab(BrowserWindow *window, BrowserTab *tab)
 	/* TODO: Check tab state before closing. */
 
 	page_num = gtk_notebook_page_num(GTK_NOTEBOOK(window->notebook), GTK_WIDGET(tab));
-	if (page_num > -1) {
+	if (page_num > -1)
 		gtk_notebook_remove_page(GTK_NOTEBOOK(window->notebook), page_num);
-	}
 }
 
 void

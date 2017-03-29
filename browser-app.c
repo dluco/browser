@@ -6,8 +6,7 @@
 #include <gtk/gtk.h>
 #include <webkit2/webkit2.h>
 
-struct _BrowserApp
-{
+struct _BrowserApp {
 	GtkApplication parent;
 };
 
@@ -20,8 +19,8 @@ typedef struct _AccelEntry {
 
 static void
 app_quit_action_activated(GSimpleAction *action,
-		GVariant *parameter,
-		gpointer user_data)
+						  GVariant      *parameter,
+						  gpointer       user_data)
 {
 	BrowserApp *app = BROWSER_APP(user_data);
 
@@ -47,16 +46,16 @@ browser_app_startup(GApplication *g_application)
 	G_APPLICATION_CLASS(browser_app_parent_class)->startup(g_application);
 
 	g_action_map_add_action_entries(G_ACTION_MAP(app),
-			app_action_entries,
-			G_N_ELEMENTS(app_action_entries),
-			app);
+									app_action_entries,
+									G_N_ELEMENTS(app_action_entries),
+									app);
 
 	/* Associate accelerators with actions. */
 	for (int i = 0; i < G_N_ELEMENTS(app_accel_entries); i++) {
-		const gchar *accels[] = {app_accel_entries[i].accel, NULL};
+		const gchar *accels[] = { app_accel_entries[i].accel, NULL };
 		gtk_application_set_accels_for_action(GTK_APPLICATION(app),
-				app_accel_entries[i].detailed_action_name,
-				accels);
+											  app_accel_entries[i].detailed_action_name,
+											  accels);
 	}
 
 	web_context = webkit_web_context_get_default();
@@ -84,7 +83,10 @@ browser_app_activate(GApplication *g_application)
 }
 
 static void
-browser_app_open(GApplication *g_application, GFile **files, gint n_files, const gchar *hint)
+browser_app_open(GApplication *g_application,
+				 GFile       **files,
+				 gint          n_files,
+				 const gchar  *hint)
 {
 	BrowserApp *app = BROWSER_APP(g_application);
 	GList *windows;
@@ -122,7 +124,7 @@ BrowserApp *
 browser_app_new(void)
 {
 	return g_object_new(BROWSER_TYPE_APP,
-			"application-id", "com.example.browserapp",
-			"flags", G_APPLICATION_HANDLES_OPEN,
-			NULL);
+						"application-id", "com.example.browserapp",
+						"flags", G_APPLICATION_HANDLES_OPEN,
+						NULL);
 }

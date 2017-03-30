@@ -92,6 +92,11 @@ browser_toolbar_forward_clicked(BrowserToolbar *toolbar)
 }
 
 static void
+browser_toolbar_stop_reload_clicked(BrowserToolbar *toolbar)
+{
+}
+
+static void
 browser_toolbar_entry_activated(BrowserToolbar *toolbar)
 {
 }
@@ -114,6 +119,13 @@ browser_toolbar_class_init(BrowserToolbarClass *class)
 			G_TYPE_FROM_CLASS(class),
 			G_SIGNAL_RUN_LAST,
 			G_CALLBACK(browser_toolbar_forward_clicked),
+			NULL, NULL, NULL,
+			G_TYPE_NONE, 0);
+
+	signals[STOP_RELOAD_CLICKED] = g_signal_new_class_handler("stop-reload-clicked",
+			G_TYPE_FROM_CLASS(class),
+			G_SIGNAL_RUN_LAST,
+			G_CALLBACK(browser_toolbar_stop_reload_clicked),
 			NULL, NULL, NULL,
 			G_TYPE_NONE, 0);
 

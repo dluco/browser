@@ -53,7 +53,7 @@ on_stop_reload_button_clicked(GtkWidget *widget, BrowserToolbar *toolbar)
 {
 	g_print("Toolbar: stop/reload button clicked\n");
 
-	g_signal_emit(toolbar, signals[FORWARD_CLICKED], 0, NULL);
+	g_signal_emit(toolbar, signals[STOP_RELOAD_CLICKED], 0, NULL);
 }
 
 static void

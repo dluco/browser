@@ -37,8 +37,26 @@ win_toggle_fullscreen(GSimpleAction *action,
 		browser_window_unfullscreen(window);
 }
 
+static void
+win_activate_back(GSimpleAction *action,
+				  GVariant      *parameter,
+				  gpointer       user_data)
+{
+	BrowserWindow *window = BROWSER_WINDOW(user_data);
+}
+
+static void
+win_activate_foward(GSimpleAction *action,
+					GVariant      *parameter,
+					gpointer       user_data)
+{
+	BrowserWindow *window = BROWSER_WINDOW(user_data);
+}
+
 static const GActionEntry win_action_entries[] = {
 	{ "fullscreen", NULL, NULL, "false", win_toggle_fullscreen },
+	{ "back", win_activate_back, NULL, "false" },
+	{ "foward", win_activate_foward, NULL, "false" },
 };
 
 static GdkWindowState

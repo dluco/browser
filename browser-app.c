@@ -32,8 +32,13 @@ static const GActionEntry app_action_entries[] = {
 };
 
 static const AccelEntry app_accel_entries[] = {
-	{ "app.quit", "<Control>Q" },
-	{ "win.fullscreen", "F11" },
+	/* App actions. */
+	{ "app.quit",		"<Primary>Q" },
+	/* Window actions. */
+	{ "win.back",		"<Alt>Left" },
+	{ "win.forward",	"<Alt>Right" },
+	{ "win.new-tab",	"<Primary>T" },
+	{ "win.fullscreen",	"F11" },
 };
 
 static void

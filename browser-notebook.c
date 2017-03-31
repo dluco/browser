@@ -14,7 +14,6 @@ struct _BrowserNotebook
 
 enum
 {
-	NEW_TAB,
 	CLOSE_TAB,
 	LAST_SIGNAL
 };
@@ -22,14 +21,6 @@ enum
 static guint signals[LAST_SIGNAL];
 
 G_DEFINE_TYPE(BrowserNotebook, browser_notebook, GTK_TYPE_NOTEBOOK)
-
-static void
-on_new_tab_button_clicked(GtkButton *button, BrowserNotebook *notebook)
-{
-	g_print("Notebook: new tab clicked\n");
-
-	g_signal_emit(notebook, signals[NEW_TAB], 0, NULL);
-}
 
 static void
 on_close_tab_button_clicked(BrowserTabLabel *tab_label, BrowserNotebook *notebook)
@@ -40,11 +31,6 @@ on_close_tab_button_clicked(BrowserTabLabel *tab_label, BrowserNotebook *noteboo
 
 	tab = browser_tab_label_get_tab(tab_label);
 	g_signal_emit(notebook, signals[CLOSE_TAB], 0, tab);
-}
-
-static void
-browser_notebook_new_tab(BrowserNotebook *notebook)
-{
 }
 
 static void
@@ -100,13 +86,6 @@ browser_notebook_class_init(BrowserNotebookClass *class)
 
 	notebook_class->page_added = browser_notebook_page_added;
 
-	signals[NEW_TAB] = g_signal_new_class_handler("new-tab",
-			G_TYPE_FROM_CLASS(class),
-			G_SIGNAL_RUN_LAST,
-			G_CALLBACK(browser_notebook_new_tab),
-			NULL, NULL, NULL,
-			G_TYPE_NONE, 0);
-
 	signals[CLOSE_TAB] = g_signal_new_class_handler("close-tab",
 			G_TYPE_FROM_CLASS(class),
 			G_SIGNAL_RUN_LAST,
@@ -130,9 +109,15 @@ browser_notebook_class_init(BrowserNotebookClass *class)
 static void
 browser_notebook_init(BrowserNotebook *notebook)
 {
+	const gchar **action_prefixes = NULL;
+
 	gtk_widget_init_template(GTK_WIDGET(notebook));
 
-	g_signal_connect(notebook->new_tab_button, "clicked", G_CALLBACK(on_new_tab_button_clicked), notebook);
+	action_prefixes = gtk_widget_list_action_prefixes(notebook->new_tab_button);
+	for (const gchar **prefix = action_prefixes; *prefix != NULL; prefix++) {
+		g_print("Action prefix: %s\n", *prefix);
+	}
+	g_free(action_prefixes);
 }
 
 void

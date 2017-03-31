@@ -43,6 +43,16 @@ win_activate_back(GSimpleAction *action,
 				  gpointer       user_data)
 {
 	BrowserWindow *window = BROWSER_WINDOW(user_data);
+	BrowserTab *tab;
+	BrowserWebView *web_view;
+
+	g_print("Window: back action\n");
+
+	tab = browser_window_get_active_tab(window);
+	if (tab) {
+		web_view = browser_tab_get_web_view(tab);
+		webkit_web_view_go_back(WEBKIT_WEB_VIEW(web_view));
+	}
 }
 
 static void
@@ -51,12 +61,36 @@ win_activate_foward(GSimpleAction *action,
 					gpointer       user_data)
 {
 	BrowserWindow *window = BROWSER_WINDOW(user_data);
+	BrowserTab *tab;
+	BrowserWebView *web_view;
+
+	g_print("Window: forward action\n");
+
+	tab = browser_window_get_active_tab(window);
+	if (tab) {
+		web_view = browser_tab_get_web_view(tab);
+		webkit_web_view_go_forward(WEBKIT_WEB_VIEW(web_view));
+	}
+}
+
+static void
+win_activate_new_tab(GSimpleAction *action,
+					GVariant      *parameter,
+					gpointer       user_data)
+{
+	BrowserWindow *window = BROWSER_WINDOW(user_data);
+
+	g_print("Window: new tab action\n");
+
+	// TODO: Set jump_to from settings.
+	browser_window_create_tab_from_uri(window, "about:blank", -1, TRUE);
 }
 
 static const GActionEntry win_action_entries[] = {
 	{ "fullscreen", NULL, NULL, "false", win_toggle_fullscreen },
 	{ "back", win_activate_back, NULL, "false" },
-	{ "foward", win_activate_foward, NULL, "false" },
+	{ "forward", win_activate_foward, NULL, "false" },
+	{ "new-tab", win_activate_new_tab },
 };
 
 static GdkWindowState
@@ -153,38 +187,6 @@ window_state_event(GtkWidget           *widget,
 		update_fullscreen_state(window, event->new_window_state & GDK_WINDOW_STATE_FULLSCREEN);
 
 	return GTK_WIDGET_CLASS(browser_window_parent_class)->window_state_event(widget, event);
-}
-
-static void
-on_back_clicked(BrowserToolbar *toolbar,
-				BrowserWindow  *window)
-{
-	BrowserTab *tab;
-	BrowserWebView *web_view;
-
-	g_print("Window: back clicked\n");
-
-	tab = browser_window_get_active_tab(window);
-	if (tab) {
-		web_view = browser_tab_get_web_view(tab);
-		webkit_web_view_go_back(WEBKIT_WEB_VIEW(web_view));
-	}
-}
-
-static void
-on_forward_clicked(BrowserToolbar *toolbar,
-				   BrowserWindow  *window)
-{
-	BrowserTab *tab;
-	BrowserWebView *web_view;
-
-	g_print("Window: forward clicked\n");
-
-	tab = browser_window_get_active_tab(window);
-	if (tab) {
-		web_view = browser_tab_get_web_view(tab);
-		webkit_web_view_go_forward(WEBKIT_WEB_VIEW(web_view));
-	}
 }
 
 static void
@@ -341,16 +343,6 @@ on_tab_changed(GtkNotebook   *notebook,
 }
 
 static void
-on_new_tab_clicked(BrowserNotebook *notebook,
-				   BrowserWindow   *window)
-{
-	g_print("Window: new tab clicked\n");
-
-	// TODO: Set jump_to from settings.
-	browser_window_create_tab_from_uri(window, "about:blank", -1, TRUE);
-}
-
-static void
 on_close_tab_clicked(BrowserNotebook *notebook,
 					 BrowserTab      *tab,
 					 BrowserWindow   *window)
@@ -396,14 +388,11 @@ browser_window_init(BrowserWindow *window)
 									G_N_ELEMENTS(win_action_entries),
 									window);
 
-	g_signal_connect(window->toolbar, "back-clicked", G_CALLBACK(on_back_clicked), window);
-	g_signal_connect(window->toolbar, "forward-clicked", G_CALLBACK(on_forward_clicked), window);
 	g_signal_connect(window->toolbar, "entry-activated", G_CALLBACK(on_entry_activated), window);
 
 	g_signal_connect(window->notebook, "page-added", G_CALLBACK(on_tab_added), window);
 	g_signal_connect(window->notebook, "page-removed", G_CALLBACK(on_tab_removed), window);
 	g_signal_connect(window->notebook, "switch-page", G_CALLBACK(on_tab_changed), window);
-	g_signal_connect(window->notebook, "new-tab", G_CALLBACK(on_new_tab_clicked), window);
 	g_signal_connect(window->notebook, "close-tab", G_CALLBACK(on_close_tab_clicked), window);
 
 	update_title(window);

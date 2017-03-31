@@ -21,9 +21,6 @@ struct _BrowserToolbar
 
 enum
 {
-	BACK_CLICKED,
-	FORWARD_CLICKED,
-	STOP_RELOAD_CLICKED,
 	ENTRY_ACTIVATED,
 	LAST_SIGNAL
 };
@@ -31,30 +28,6 @@ enum
 static guint signals[LAST_SIGNAL];
 
 G_DEFINE_TYPE(BrowserToolbar, browser_toolbar, GTK_TYPE_TOOLBAR)
-
-static void
-on_back_button_clicked(GtkWidget *widget, BrowserToolbar *toolbar)
-{
-	g_print("Toolbar: back button clicked\n");
-
-	g_signal_emit(toolbar, signals[BACK_CLICKED], 0, NULL);
-}
-
-static void
-on_forward_button_clicked(GtkWidget *widget, BrowserToolbar *toolbar)
-{
-	g_print("Toolbar: forward button clicked\n");
-
-	g_signal_emit(toolbar, signals[FORWARD_CLICKED], 0, NULL);
-}
-
-static void
-on_stop_reload_button_clicked(GtkWidget *widget, BrowserToolbar *toolbar)
-{
-	g_print("Toolbar: stop/reload button clicked\n");
-
-	g_signal_emit(toolbar, signals[STOP_RELOAD_CLICKED], 0, NULL);
-}
 
 static void
 on_entry_insert_text(GtkEntryBuffer *buffer, guint position, gchar *chars, guint n_chars, BrowserToolbar *toolbar)
@@ -82,21 +55,6 @@ on_entry_activated(GtkEntry *entry, BrowserToolbar *toolbar)
 }
 
 static void
-browser_toolbar_back_clicked(BrowserToolbar *toolbar)
-{
-}
-
-static void
-browser_toolbar_forward_clicked(BrowserToolbar *toolbar)
-{
-}
-
-static void
-browser_toolbar_stop_reload_clicked(BrowserToolbar *toolbar)
-{
-}
-
-static void
 browser_toolbar_entry_activated(BrowserToolbar *toolbar)
 {
 }
@@ -107,27 +65,6 @@ browser_toolbar_class_init(BrowserToolbarClass *class)
 	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(class);
 	GMappedFile *file;
 	GBytes *bytes;
-
-	signals[BACK_CLICKED] = g_signal_new_class_handler("back-clicked",
-			G_TYPE_FROM_CLASS(class),
-			G_SIGNAL_RUN_LAST,
-			G_CALLBACK(browser_toolbar_back_clicked),
-			NULL, NULL, NULL,
-			G_TYPE_NONE, 0);
-
-	signals[FORWARD_CLICKED] = g_signal_new_class_handler("forward-clicked",
-			G_TYPE_FROM_CLASS(class),
-			G_SIGNAL_RUN_LAST,
-			G_CALLBACK(browser_toolbar_forward_clicked),
-			NULL, NULL, NULL,
-			G_TYPE_NONE, 0);
-
-	signals[STOP_RELOAD_CLICKED] = g_signal_new_class_handler("stop-reload-clicked",
-			G_TYPE_FROM_CLASS(class),
-			G_SIGNAL_RUN_LAST,
-			G_CALLBACK(browser_toolbar_stop_reload_clicked),
-			NULL, NULL, NULL,
-			G_TYPE_NONE, 0);
 
 	signals[ENTRY_ACTIVATED] = g_signal_new_class_handler("entry-activated",
 			G_TYPE_FROM_CLASS(class),
@@ -161,10 +98,6 @@ browser_toolbar_init(BrowserToolbar *toolbar)
 	toolbar->entry_modified = FALSE;
 
 	gtk_widget_init_template(GTK_WIDGET(toolbar));
-
-	g_signal_connect(toolbar->back_button, "clicked", G_CALLBACK(on_back_button_clicked), toolbar);
-	g_signal_connect(toolbar->forward_button, "clicked", G_CALLBACK(on_forward_button_clicked), toolbar);
-	g_signal_connect(toolbar->stop_reload_button, "clicked", G_CALLBACK(on_stop_reload_button_clicked), toolbar);
 
 	buffer = gtk_entry_get_buffer(GTK_ENTRY(toolbar->entry));
 

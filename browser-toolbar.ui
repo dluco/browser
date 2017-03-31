@@ -20,6 +20,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="image">back_image</property>
+                <property name="action_name">win.back</property>
                 <style>
                   <class name="flat"/>
                 </style>
@@ -35,6 +36,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="image">forward_image</property>
+                <property name="action_name">win.forward</property>
                 <style>
                   <class name="flat"/>
                 </style>
@@ -67,6 +69,7 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="image">reload_image</property>
+            <property name="action_name">win.stop-reload</property>
             <style>
               <class name="flat"/>
             </style>
@@ -106,6 +109,7 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="image">home_image</property>
+            <property name="action_name">win.home</property>
             <style>
               <class name="flat"/>
             </style>

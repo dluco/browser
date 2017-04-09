@@ -37,6 +37,19 @@ win_toggle_fullscreen(GSimpleAction *action,
 		browser_window_unfullscreen(window);
 }
 
+//static void
+//win_toggle_show_menubar(GSimpleAction *action,
+//					    GVariant      *state,
+//					    gpointer       user_data)
+//{
+//	BrowserWindow *window = BROWSER_WINDOW(user_data);
+//
+//	if (g_variant_get_boolean(state))
+//		browser_window_fullscreen(window);
+//	else
+//		browser_window_unfullscreen(window);
+//}
+
 static void
 win_activate_back(GSimpleAction *action,
 				  GVariant      *parameter,
@@ -74,6 +87,22 @@ win_activate_foward(GSimpleAction *action,
 }
 
 static void
+win_activate_home(GSimpleAction *action,
+					GVariant      *parameter,
+					gpointer       user_data)
+{
+	BrowserWindow *window = BROWSER_WINDOW(user_data);
+	BrowserTab *tab;
+
+	g_print("Window: home action\n");
+
+	tab = browser_window_get_active_tab(window);
+	if (tab) {
+
+	}
+}
+
+static void
 win_activate_new_tab(GSimpleAction *action,
 					GVariant      *parameter,
 					gpointer       user_data)
@@ -88,8 +117,10 @@ win_activate_new_tab(GSimpleAction *action,
 
 static const GActionEntry win_action_entries[] = {
 	{ "fullscreen", NULL, NULL, "false", win_toggle_fullscreen },
+//	{ "show-menubar", NULL, NULL, "true", win_toggle_show_menubar },
 	{ "back", win_activate_back, NULL, "false" },
 	{ "forward", win_activate_foward, NULL, "false" },
+	{ "home", win_activate_home },
 	{ "new-tab", win_activate_new_tab },
 };
 
@@ -172,6 +203,28 @@ update_title(BrowserWindow *window)
 {
 	BrowserTab *tab = browser_window_get_active_tab(window);
 	update_title_from_tab(window, tab);
+}
+
+static gboolean
+key_release_event(GtkWidget *widget,
+				  GdkEventKey *event)
+{
+	BrowserWindow *window = BROWSER_WINDOW(widget);
+	gboolean handled = FALSE;
+
+	g_print("Window: key release event\n");
+
+	/* Check if Alt released as the only key. */
+	if (event->state == GDK_MOD1_MASK && (event->keyval == GDK_KEY_Alt_L || event->keyval == GDK_KEY_Alt_R)) {
+		/* Toggle the "show-menubar" action (& property) state. */
+		g_action_group_activate_action(G_ACTION_GROUP(window), "show-menubar", NULL);
+		handled = TRUE;
+	}
+
+	if (!handled)
+		handled = GTK_WIDGET_CLASS(browser_window_parent_class)->key_release_event(widget, event);
+
+	return handled;
 }
 
 static gboolean
@@ -353,12 +406,19 @@ on_close_tab_clicked(BrowserNotebook *notebook,
 }
 
 static void
+on_show_menubar_changed(BrowserWindow *window, GParamSpec *pspec, gpointer unused)
+{
+	g_print("Window: show-menubar changed\n");
+}
+
+static void
 browser_window_class_init(BrowserWindowClass *class)
 {
 	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(class);
 	GMappedFile *file;
 	GBytes *bytes;
 
+	widget_class->key_release_event = key_release_event;
 	widget_class->window_state_event = window_state_event;
 
 	file = g_mapped_file_new("browser-window.ui", FALSE, NULL);
@@ -378,6 +438,8 @@ browser_window_class_init(BrowserWindowClass *class)
 static void
 browser_window_init(BrowserWindow *window)
 {
+	GPropertyAction *action;
+
 	g_type_ensure(BROWSER_TYPE_TOOLBAR);
 	g_type_ensure(BROWSER_TYPE_NOTEBOOK);
 
@@ -388,12 +450,23 @@ browser_window_init(BrowserWindow *window)
 									G_N_ELEMENTS(win_action_entries),
 									window);
 
+	action = g_property_action_new("show-menubar",
+			window,
+			"show-menubar");
+	g_action_map_add_action(G_ACTION_MAP(window), G_ACTION(action));
+
 	g_signal_connect(window->toolbar, "entry-activated", G_CALLBACK(on_entry_activated), window);
 
 	g_signal_connect(window->notebook, "page-added", G_CALLBACK(on_tab_added), window);
 	g_signal_connect(window->notebook, "page-removed", G_CALLBACK(on_tab_removed), window);
 	g_signal_connect(window->notebook, "switch-page", G_CALLBACK(on_tab_changed), window);
 	g_signal_connect(window->notebook, "close-tab", G_CALLBACK(on_close_tab_clicked), window);
+
+	g_object_set(G_OBJECT(window),
+			"show-menubar", FALSE,
+			NULL);
+
+	g_signal_connect(window, "notify::show-menubar", G_CALLBACK(on_show_menubar_changed), NULL);
 
 	update_title(window);
 }

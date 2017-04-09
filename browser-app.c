@@ -33,23 +33,30 @@ static const GActionEntry app_action_entries[] = {
 
 static const AccelEntry app_accel_entries[] = {
 	/* App actions. */
-	{ "app.quit",		"<Primary>Q" },
+	{ "app.quit",			"<Primary>Q" },
 	/* Window actions. */
-	{ "win.back",		"<Alt>Left" },
-	{ "win.forward",	"<Alt>Right" },
-	{ "win.new-tab",	"<Primary>T" },
-	{ "win.fullscreen",	"F11" },
+	{ "win.back",			"<Alt>Left" },
+	{ "win.forward",		"<Alt>Right" },
+	{ "win.new-tab",		"<Primary>T" },
+	{ "win.fullscreen",		"F11" },
 };
 
 static void
 browser_app_startup(GApplication *g_application)
 {
 	BrowserApp *app = BROWSER_APP(g_application);
+	GtkBuilder *builder;
+	GMenuModel *menubar;
 	WebKitWebContext *web_context;
 	WebKitCookieManager *cookie_manager;
 	gchar *path;
 
 	G_APPLICATION_CLASS(browser_app_parent_class)->startup(g_application);
+
+	builder = gtk_builder_new_from_file("menus.ui");
+	menubar = G_MENU_MODEL(gtk_builder_get_object(builder, "menubar"));
+	gtk_application_set_menubar(GTK_APPLICATION(g_application), menubar);
+	g_object_unref(builder);
 
 	g_action_map_add_action_entries(G_ACTION_MAP(app),
 									app_action_entries,

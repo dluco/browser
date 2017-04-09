@@ -9,5 +9,16 @@
         <attribute name="action">app.quit</attribute>
       </item>
     </submenu>
+    <submenu>
+      <attribute name="label">_View</attribute>
+      <item>
+        <attribute name="label">_Menu Bar</attribute>
+        <attribute name="action">win.show-menubar</attribute>
+      </item>
+      <item>
+        <attribute name="label">_Fullscreen</attribute>
+        <attribute name="action">win.fullscreen</attribute>
+      </item>
+    </submenu>
   </menu>
 </interface>

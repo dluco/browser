@@ -148,12 +148,19 @@ update_fullscreen_state(BrowserWindow *window,
 
 	g_return_if_fail(BROWSER_IS_WINDOW(window));
 
+	/* Update "fullscreen" action state. */
 	action = g_action_map_lookup_action(G_ACTION_MAP(window),
 										"fullscreen");
 	if (action) {
 		g_simple_action_set_state(G_SIMPLE_ACTION(action),
 								  g_variant_new_boolean(is_fullscreen));
 	}
+
+	/* Update window widgets' visibility. */
+	gtk_widget_set_visible(GTK_WIDGET(window->toolbar), !is_fullscreen);
+	gtk_notebook_set_show_tabs(GTK_NOTEBOOK(window->notebook), !is_fullscreen);
+
+	g_object_set(G_OBJECT(window), "show-menubar", !is_fullscreen, NULL);
 }
 
 static void

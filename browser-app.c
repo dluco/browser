@@ -38,6 +38,7 @@ static const AccelEntry app_accel_entries[] = {
 	{ "win.back",			"<Alt>Left" },
 	{ "win.forward",		"<Alt>Right" },
 	{ "win.new-tab",		"<Primary>T" },
+	{ "win.close-tab",		"<Primary>W" },
 	{ "win.fullscreen",		"F11" },
 };
 

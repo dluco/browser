@@ -115,6 +115,22 @@ win_activate_new_tab(GSimpleAction *action,
 	browser_window_create_tab_from_uri(window, "about:blank", -1, TRUE);
 }
 
+static void
+win_activate_close_tab(GSimpleAction *action,
+					   GVariant      *parameter,
+					   gpointer       user_data)
+{
+	BrowserWindow *window = BROWSER_WINDOW(user_data);
+	BrowserTab *tab;
+
+	g_print("Window: close tab action\n");
+
+	tab = browser_window_get_active_tab(window);
+	if (tab) {
+		browser_window_close_tab(window, tab);
+	}
+}
+
 static const GActionEntry win_action_entries[] = {
 	{ "fullscreen", NULL, NULL, "false", win_toggle_fullscreen },
 //	{ "show-menubar", NULL, NULL, "true", win_toggle_show_menubar },
@@ -122,6 +138,7 @@ static const GActionEntry win_action_entries[] = {
 	{ "forward", win_activate_foward, NULL, "false" },
 	{ "home", win_activate_home },
 	{ "new-tab", win_activate_new_tab },
+	{ "close-tab", win_activate_close_tab },
 };
 
 static GdkWindowState
@@ -335,7 +352,7 @@ on_tab_removed(GtkNotebook   *notebook,
 			   BrowserWindow *window)
 {
 	BrowserTab *tab = BROWSER_TAB(child);
-	char *user_input;
+	gchar *user_input;
 
 	g_print("Window: tab removed\n");
 
@@ -356,6 +373,15 @@ on_tab_removed(GtkNotebook   *notebook,
 		g_print("Window: clearing saved user input from removed tab\n");
 		g_object_set_data(G_OBJECT(child), SAVED_USER_INPUT, NULL);
 		g_free(user_input);
+	}
+
+	gint n_pages = gtk_notebook_get_n_pages(GTK_NOTEBOOK(window->notebook));
+
+	g_print("Window: n pages = %d\n", n_pages);
+
+	if (n_pages < 1) {
+		/* All tabs have been closed - close this window. */
+		gtk_window_close(GTK_WINDOW(window));
 	}
 }
 

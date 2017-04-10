@@ -20,9 +20,16 @@ struct _BrowserWindow {
 	GtkWidget *box;
 	BrowserToolbar *toolbar;
 	GtkWidget *notebook;
+
+	GList *closed_tabs;
 };
 
 G_DEFINE_TYPE(BrowserWindow, browser_window, GTK_TYPE_APPLICATION_WINDOW)
+
+typedef struct _TabInfo {
+	WebKitWebViewSessionState *state;
+	gint index;
+} TabInfo;
 
 static void
 win_toggle_fullscreen(GSimpleAction *action,
@@ -131,6 +138,29 @@ win_activate_close_tab(GSimpleAction *action,
 	}
 }
 
+static void
+win_activate_undo_close_tab(GSimpleAction *action,
+							GVariant      *parameter,
+							gpointer       user_data)
+{
+	BrowserWindow *window = BROWSER_WINDOW(user_data);
+	BrowserTab *tab;
+	TabInfo *tab_info;
+	GList *l;
+
+	g_print("Window: undo close tab action\n");
+
+	l = g_list_first(window->closed_tabs);
+	if (l) {
+		tab_info = l->data;
+	}
+
+	// TODO: Restore tab using tab_info
+
+	/* Remove (and free) the list item. */
+	window->closed_tabs = g_list_delete_link(window->closed_tabs, l);
+}
+
 static const GActionEntry win_action_entries[] = {
 	{ "fullscreen", NULL, NULL, "false", win_toggle_fullscreen },
 //	{ "show-menubar", NULL, NULL, "true", win_toggle_show_menubar },
@@ -139,6 +169,7 @@ static const GActionEntry win_action_entries[] = {
 	{ "home", win_activate_home },
 	{ "new-tab", win_activate_new_tab },
 	{ "close-tab", win_activate_close_tab },
+	{ "undo-close-tab", win_activate_undo_close_tab },
 };
 
 static GdkWindowState
@@ -352,7 +383,10 @@ on_tab_removed(GtkNotebook   *notebook,
 			   BrowserWindow *window)
 {
 	BrowserTab *tab = BROWSER_TAB(child);
+	BrowserWebView *web_view;
+	TabInfo *tab_info;
 	gchar *user_input;
+	gint n_pages;
 
 	g_print("Window: tab removed\n");
 
@@ -375,10 +409,18 @@ on_tab_removed(GtkNotebook   *notebook,
 		g_free(user_input);
 	}
 
-	gint n_pages = gtk_notebook_get_n_pages(GTK_NOTEBOOK(window->notebook));
+	/* Save tab state so that it can be restored later. */
+	tab_info = g_slice_new(TabInfo);
+	tab_info->index = page_num;
 
-	g_print("Window: n pages = %d\n", n_pages);
+	/* Save tab's web-view state. */
+	web_view = browser_tab_get_web_view(tab);
+	if (web_view) {
+		tab_info->state = webkit_web_view_get_session_state(WEBKIT_WEB_VIEW(web_view));
+	}
+	window->closed_tabs = g_list_prepend(window->closed_tabs, tab_info);
 
+	n_pages = gtk_notebook_get_n_pages(GTK_NOTEBOOK(window->notebook));
 	if (n_pages < 1) {
 		/* All tabs have been closed - close this window. */
 		gtk_window_close(GTK_WINDOW(window));
@@ -472,6 +514,8 @@ static void
 browser_window_init(BrowserWindow *window)
 {
 	GPropertyAction *action;
+
+	window->closed_tabs = NULL;
 
 	g_type_ensure(BROWSER_TYPE_TOOLBAR);
 	g_type_ensure(BROWSER_TYPE_NOTEBOOK);

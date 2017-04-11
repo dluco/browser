@@ -145,7 +145,8 @@ win_activate_undo_close_tab(GSimpleAction *action,
 {
 	BrowserWindow *window = BROWSER_WINDOW(user_data);
 	BrowserTab *tab;
-	TabInfo *tab_info;
+	BrowserWebView *web_view;
+	TabInfo *tab_info = NULL;
 	GList *l;
 
 	g_print("Window: undo close tab action\n");
@@ -155,7 +156,15 @@ win_activate_undo_close_tab(GSimpleAction *action,
 		tab_info = l->data;
 	}
 
-	// TODO: Restore tab using tab_info
+	/* Restore tab using tab_info. */
+	if (tab_info) {
+		tab = browser_window_create_tab(window, tab_info->index, TRUE);
+		if (tab) {
+			web_view = browser_tab_get_web_view(tab);
+			webkit_web_view_restore_session_state(WEBKIT_WEB_VIEW(web_view),
+					tab_info->state);
+		}
+	}
 
 	/* Remove (and free) the list item. */
 	window->closed_tabs = g_list_delete_link(window->closed_tabs, l);
@@ -459,8 +468,9 @@ on_tab_changed(GtkNotebook   *notebook,
 		/* Clear the saved text in the object. */
 		g_object_set_data(G_OBJECT(incoming), SAVED_USER_INPUT, NULL);
 		g_free(user_input);
-	} else
+	} else {
 		update_uri_from_tab(window, incoming, TRUE);
+	}
 
 	update_title_from_tab(window, incoming);
 
@@ -585,13 +595,23 @@ browser_window_create_tab_from_uri(BrowserWindow *window,
 	GtkWidget *tab;
 
 	g_return_val_if_fail(BROWSER_IS_WINDOW(window), NULL);
-	g_return_val_if_fail(uri != NULL, NULL);
 
 	tab = browser_tab_new();
 
-	browser_tab_load_uri(BROWSER_TAB(tab), uri);
+	/* URI is permitted to be NULL. */
+	if (uri) {
+		browser_tab_load_uri(BROWSER_TAB(tab), uri);
+	}
 
 	return process_create_tab(window, BROWSER_TAB(tab), position, jump_to);
+}
+
+BrowserTab *
+browser_window_create_tab(BrowserWindow *window,
+						  gint position,
+						  gboolean jump_to)
+{
+	return browser_window_create_tab_from_uri(window, NULL, position, jump_to);
 }
 
 void

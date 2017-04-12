@@ -31,6 +31,23 @@ typedef struct _TabInfo {
 	gint index;
 } TabInfo;
 
+TabInfo *
+tab_info_new(void)
+{
+	return g_slice_new0(TabInfo);
+}
+
+void
+tab_info_free(TabInfo *tab_info)
+{
+	g_return_if_fail(tab_info != NULL);
+
+	if (tab_info->state)
+		webkit_web_view_session_state_unref(tab_info->state);
+
+	g_slice_free(TabInfo, tab_info);
+}
+
 static void
 win_toggle_fullscreen(GSimpleAction *action,
 					  GVariant      *state,
@@ -164,6 +181,7 @@ win_activate_undo_close_tab(GSimpleAction *action,
 			webkit_web_view_restore_session_state(WEBKIT_WEB_VIEW(web_view),
 					tab_info->state);
 		}
+		tab_info_free(tab_info);
 	}
 
 	/* Remove (and free) the list item. */
@@ -399,6 +417,7 @@ on_tab_removed(GtkNotebook   *notebook,
 
 	g_print("Window: tab removed\n");
 
+	g_signal_handlers_disconnect_by_func(tab, G_CALLBACK(on_tab_state_changed), window);
 	g_signal_handlers_disconnect_by_func(tab, G_CALLBACK(on_tab_uri_changed), window);
 	g_signal_handlers_disconnect_by_func(tab, G_CALLBACK(on_tab_title_changed), window);
 	g_signal_handlers_disconnect_by_func(tab, G_CALLBACK(on_tab_back_forward_changed), window);
@@ -419,7 +438,7 @@ on_tab_removed(GtkNotebook   *notebook,
 	}
 
 	/* Save tab state so that it can be restored later. */
-	tab_info = g_slice_new(TabInfo);
+	tab_info = tab_info_new();
 	tab_info->index = page_num;
 
 	/* Save tab's web-view state. */

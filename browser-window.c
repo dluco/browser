@@ -384,6 +384,60 @@ on_tab_back_forward_changed(BrowserTab    *tab,
 		browser_toolbar_update_buttons(window->toolbar, can_go_back, can_go_forward);
 }
 
+static gboolean
+handle_navigation_action_decision(WebKitWebView *web_view,
+								  WebKitPolicyDecision *decision,
+								  BrowserWindow *window)
+{
+	WebKitNavigationPolicyDecision *navigation_decision = WEBKIT_NAVIGATION_POLICY_DECISION(decision);
+
+	return FALSE; // Unhandled
+}
+
+static gboolean
+handle_new_window_decision(WebKitWebView *web_view,
+						   WebKitPolicyDecision *decision,
+						   BrowserWindow *window)
+{
+	WebKitNavigationPolicyDecision *navigation_decision = WEBKIT_NAVIGATION_POLICY_DECISION(decision);
+
+	return FALSE; // Unhandled
+}
+
+static gboolean
+handle_response_decision(WebKitWebView *web_view,
+						 WebKitPolicyDecision *decision,
+						 BrowserWindow *window)
+{
+	WebKitResponsePolicyDecision *response_decision = WEBKIT_RESPONSE_POLICY_DECISION(decision);
+	/* Decide whether to load or download a resource. */
+	if (!webkit_response_policy_decision_is_mime_type_supported(response_decision)) {
+		webkit_policy_decision_download(decision);
+		return TRUE;
+	}
+
+	return FALSE; // Unhandled
+}
+
+static gboolean
+on_web_view_decide_policy(WebKitWebView *web_view,
+						  WebKitPolicyDecision *decision,
+						  WebKitPolicyDecisionType type,
+						  BrowserWindow *window)
+{
+	switch (type) {
+		case WEBKIT_POLICY_DECISION_TYPE_NAVIGATION_ACTION:
+			return handle_navigation_action_decision(web_view, decision, window);
+		case WEBKIT_POLICY_DECISION_TYPE_NEW_WINDOW_ACTION:
+			return handle_new_window_decision(web_view, decision, window);
+		case WEBKIT_POLICY_DECISION_TYPE_RESPONSE:
+			return handle_response_decision(web_view, decision, window);
+		default:
+			break;
+	}
+	return FALSE;
+}
+
 static void
 on_tab_added(GtkNotebook   *notebook,
 			 GtkWidget     *child,
@@ -391,8 +445,11 @@ on_tab_added(GtkNotebook   *notebook,
 			 BrowserWindow *window)
 {
 	BrowserTab *tab = BROWSER_TAB(child);
+	BrowserWebView *web_view;
 
 	g_print("Window: tab added\n");
+
+	web_view = browser_tab_get_web_view(tab);
 
 	/* IMPORTANT: Signal handlers connected here must be disconnected
 	 * when the tab is removed from the notebook.
@@ -401,6 +458,10 @@ on_tab_added(GtkNotebook   *notebook,
 	g_signal_connect(tab, "uri-changed", G_CALLBACK(on_tab_uri_changed), window);
 	g_signal_connect(tab, "title-changed", G_CALLBACK(on_tab_title_changed), window);
 	g_signal_connect(tab, "back-forward-changed", G_CALLBACK(on_tab_back_forward_changed), window);
+
+	if (web_view) {
+		g_signal_connect(web_view, "decide-policy", G_CALLBACK(on_web_view_decide_policy), window);
+	}
 }
 
 static void
@@ -417,10 +478,17 @@ on_tab_removed(GtkNotebook   *notebook,
 
 	g_print("Window: tab removed\n");
 
+	web_view = browser_tab_get_web_view(tab);
+
 	g_signal_handlers_disconnect_by_func(tab, G_CALLBACK(on_tab_state_changed), window);
 	g_signal_handlers_disconnect_by_func(tab, G_CALLBACK(on_tab_uri_changed), window);
 	g_signal_handlers_disconnect_by_func(tab, G_CALLBACK(on_tab_title_changed), window);
 	g_signal_handlers_disconnect_by_func(tab, G_CALLBACK(on_tab_back_forward_changed), window);
+
+	if (web_view) {
+		g_signal_handlers_disconnect_by_func(web_view, G_CALLBACK(on_web_view_decide_policy), window);
+	}
+
 
 	/* TODO: Save the user inputed text in the toolbar entry? This is only
 	 * applicable if tabs will be restorable in the future.
@@ -442,7 +510,6 @@ on_tab_removed(GtkNotebook   *notebook,
 	tab_info->index = page_num;
 
 	/* Save tab's web-view state. */
-	web_view = browser_tab_get_web_view(tab);
 	if (web_view) {
 		tab_info->state = webkit_web_view_get_session_state(WEBKIT_WEB_VIEW(web_view));
 	}

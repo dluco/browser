@@ -35,6 +35,7 @@ static const AccelEntry app_accel_entries[] = {
 	/* App actions. */
 	{ "app.quit",			"<Primary>Q" },
 	/* Window actions. */
+	{ "win.print",			"<Primary>P" },
 	{ "win.back",			"<Alt>Left" },
 	{ "win.forward",		"<Alt>Right" },
 	{ "win.new-tab",		"<Primary>T" },

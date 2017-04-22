@@ -49,6 +49,29 @@ tab_info_free(TabInfo *tab_info)
 }
 
 static void
+win_activate_print(GSimpleAction *action,
+				   GVariant      *parameter,
+				   gpointer       user_data)
+{
+	BrowserWindow *window = BROWSER_WINDOW(user_data);
+	BrowserTab *tab;
+	BrowserWebView *web_view;
+	WebKitPrintOperation *print_operation;
+
+	g_print("Window: print action\n");
+
+	tab = browser_window_get_active_tab(window);
+	if (tab) {
+		web_view = browser_tab_get_web_view(tab);
+
+		print_operation = webkit_print_operation_new(WEBKIT_WEB_VIEW(web_view));
+		webkit_print_operation_run_dialog(print_operation, GTK_WINDOW(window));
+
+		g_object_unref(print_operation);
+	}
+}
+
+static void
 win_toggle_fullscreen(GSimpleAction *action,
 					  GVariant      *state,
 					  gpointer       user_data)
@@ -189,6 +212,7 @@ win_activate_undo_close_tab(GSimpleAction *action,
 }
 
 static const GActionEntry win_action_entries[] = {
+	{ "print", win_activate_print },
 	{ "fullscreen", NULL, NULL, "false", win_toggle_fullscreen },
 //	{ "show-menubar", NULL, NULL, "true", win_toggle_show_menubar },
 	{ "back", win_activate_back, NULL, "false" },

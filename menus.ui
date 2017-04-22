@@ -5,6 +5,10 @@
     <submenu>
       <attribute name="label">_File</attribute>
       <item>
+        <attribute name="label">_Print</attribute>
+        <attribute name="action">win.print</attribute>
+      </item>
+      <item>
         <attribute name="label">_Quit</attribute>
         <attribute name="action">app.quit</attribute>
       </item>

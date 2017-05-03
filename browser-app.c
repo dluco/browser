@@ -1,9 +1,8 @@
 #include "browser-app.h"
 
+#include "browser-download-manager.h"
 #include "browser-window.h"
 
-#include <gio/gio.h>
-#include <gtk/gtk.h>
 #include <webkit2/webkit2.h>
 
 struct _BrowserApp {
@@ -44,41 +43,6 @@ static const AccelEntry app_accel_entries[] = {
 	{ "win.fullscreen",		"F11" },
 };
 
-static gboolean
-on_download_decide_destination(WebKitDownload *download,
-								gchar *suggested_filename,
-								BrowserApp *app)
-{
-	const gchar *user_download_dir;
-	gchar *path;
-	gchar *destination;
-
-	g_print("App: downloading \"%s\"\n", suggested_filename);
-
-	/* TODO: Use a setting to control the download directory. */
-	user_download_dir = g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD);
-	path = g_build_filename(user_download_dir, suggested_filename, NULL);
-	destination = g_filename_to_uri(path, NULL, NULL);
-
-	g_print("Destination: \"%s\"\n", destination);
-
-	webkit_download_set_destination(download, destination);
-
-	g_free(path);
-	g_free(destination);
-
-	/* Handled. */
-	return TRUE;
-}
-
-static void
-on_download_created_destination(WebKitDownload *download,
-								gchar *destination,
-								BrowserApp *app)
-{
-	g_print("App: created destination: %s\n", destination);
-}
-
 static void
 on_download_started(WebKitWebContext *web_context,
 					WebKitDownload *download,
@@ -86,8 +50,7 @@ on_download_started(WebKitWebContext *web_context,
 {
 	g_print("App: download started\n");
 
-	g_signal_connect(download, "decide-destination", G_CALLBACK(on_download_decide_destination), app);
-	g_signal_connect(download, "created-destination", G_CALLBACK(on_download_created_destination), app);
+	browser_download_manager_add_download(browser_download_manager_get_default(), download);
 }
 
 static void
@@ -123,6 +86,10 @@ browser_app_startup(GApplication *g_application)
 	web_context = webkit_web_context_get_default();
 
 	g_signal_connect(web_context, "download-started", G_CALLBACK(on_download_started), app);
+
+	/* Set web context settings. */
+	/* TODO: Move to a util so the same settings are used for ephemeral contexts. */
+	webkit_web_context_set_process_model(web_context, WEBKIT_PROCESS_MODEL_MULTIPLE_SECONDARY_PROCESSES);
 
 	/* Set and enable favicon database. */
 	path = g_build_filename(g_get_user_data_dir(), "browser", "icondatabase", NULL);
